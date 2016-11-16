@@ -1,0 +1,10 @@
+<header class="header">
+    <div class="wrapper">
+        <a href="/" class="homelink"><strong><%= config.title %></strong></a>
+        <nav class="nav">
+        <% for (var item in theme.menu) { %>
+            <a href="<%= theme.menu[item] %>" class="nav-link"><%= item %></a>
+        <% } %>
+        </div>
+    </div>
+</header>

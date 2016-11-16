@@ -1,0 +1,12 @@
+<article class="block">
+    <header class="article-header">
+        <h1>Archives</h1>
+    </header>
+    <main class="article-content">
+        <ul>
+        <% page.posts.each(function(post) { %>
+            <li><time datetime="<%= date_xml(post.date) %>" itemprop="datePublished"><%= date(post.date, 'YYYY-MM-DD') %></time> &raquo; <a href="<%- url_for(post.path) %>"><%= post.title %></a></li>
+        <% }) %>
+        </ul>
+    </main>
+</article>
