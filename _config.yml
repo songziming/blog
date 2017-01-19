@@ -105,6 +105,9 @@ theme: szmblog
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
+include:
+    - .nojekyll
+    - CNAME
 deploy:
     type: git
     repo: git@github.com:/songziming/blog.git
