@@ -1,0 +1,13 @@
+<header class="header">
+    <div class="wrapper">
+        <a href="/" class="homelink">
+            <img src='/assets/images/glider.svg' alt='hacker emblem'>
+            <strong>{{ site.title }}</strong>
+        </a>
+        <nav class="nav">
+        {% for menu in site.menu %}
+            <a href="{{ menu[1] }}" class="nav-link">{{ menu[0] }}</a>
+        {% endfor %}
+        </nav>
+    </div>
+</header>

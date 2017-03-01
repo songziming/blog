@@ -1,0 +1,32 @@
+---
+layout: base
+---
+
+<article class="block">
+    <header class="article-header">
+        <h1>{{ page.title }}</h1>
+        <p class="article-meta">
+            <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">{{ page.date | date_to_long_string }}</time>
+            {% if page.categories %}
+                /
+                {% for category in page.categories %}
+                    {{ category }}
+                {% endfor %}
+            {% endif %}
+        </p>
+    </header>
+    <main class="article-content">
+        {{ content }}
+    </main>
+</article>
+
+{% include disqus.html %}
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']]
+    }
+});
+</script>
+<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
