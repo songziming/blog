@@ -10,6 +10,17 @@ markdown: kramdown
 sass:
     style: compressed
 
+exclude: ["CNAME"]
+
+defaults:
+    -
+        scope:
+            path: ""
+        values:
+            layout: "post"
+
+#-------------------------------------------------------------------------------
+
 disqus_shortname: szm
 ganalytics_id: UA-73870068-1
 
@@ -24,10 +35,3 @@ links:
     羽民: http://wanzy.me/blog/
     峯少: http://timmyxu.me
     渣诚: http://heavenduke.com
-
-defaults:
-    -
-        scope:
-            path: ""
-        values:
-            layout: "post"
