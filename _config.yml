@@ -28,6 +28,7 @@ menu:
     archives: /archives
     about: /about
     source: https://github.com/songziming/blog
+    "安卓系统架构课": /arch
 
 links:
     荒原: http://wcqblog.github.io/
