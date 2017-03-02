@@ -17,7 +17,7 @@ title: About Me
 - Java、C#，会用而已，不熟练
 - ActionScript 2.0，这个是我学的第一门“编程语言”，虽然已经忘得差不多了
 
-我对联系方式：`echo aUBzem0ubWUK | base64 -d`。
+我的联系方式：`echo aUBzem0ubWUK | base64 -d`。
 
 ### 关于此博客
 
