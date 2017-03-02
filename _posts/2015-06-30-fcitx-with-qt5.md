@@ -1,7 +1,6 @@
 ---
 title: "让 Qt5 支持 fcitx"
 category: "开发"
-tags: ["qt", "linux"]
 ---
 
 Qt5 有一个让人头疼的问题，就是 Linux 下的中文输入法一直有问题。[这篇文章](http://blog.csdn.net/crazyboy2009/article/details/38537099)给出了一种解决办法，通过复制文件实现，然而发现 Qt 版本 5.4 中此法并不能用，只要尝试启动程序就会段错误。
