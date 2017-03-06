@@ -5,6 +5,9 @@ layout: page
 
 ![](/assets/images/android_arch.jpg)
 
+课件下载：
+- [Chapter 1 Introduction](http://songziming.qiniudn.com/arch/chapter1_Introduction.pdf)
+
 报名或者修改自己的选题，发送邮件到`s.ziming@hotmail.com`。
 
 决定题目之前请确认该话题未占用。
