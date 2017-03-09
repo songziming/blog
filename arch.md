@@ -7,6 +7,20 @@ layout: page
 
 课件下载：
 - [Chapter 1 Introduction](http://songziming.qiniudn.com/arch/chapter1_Introduction.pdf)
+- [Chapter 2 Modeling](http://songziming.qiniudn.com/chapter%202%20modeling.pdf)
+- [Chapter 4 Android Platform Review](http://songziming.qiniudn.com/chapter%204%20android%20platform%20overview.pdf)
+- [Chapter 5 Android Application Model](http://songziming.qiniudn.com/chapter%205%20android%20application%20model.pdf)
+- [Chapter 6 Android Internals](http://songziming.qiniudn.com/chapter%206%20Android%20Internals.pdf)
+- [Chapter 7 Android Binder IPC](http://songziming.qiniudn.com/Chapter%207%20android-binder-ipc.pdf)
+
+- [第03章 质量属性](http://songziming.qiniudn.com/%E7%AC%AC03%E7%AB%A0%20%E8%B4%A8%E9%87%8F%E5%B1%9E%E6%80%A7.pdf)
+- [第04章0 数据流风格](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A00%20%E6%95%B0%E6%8D%AE%E6%B5%81%E9%A3%8E%E6%A0%BC.pdf)
+- [第04章1 数据流风格案例](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A01%20%E6%95%B0%E6%8D%AE%E6%B5%81%E9%A3%8E%E6%A0%BC%E6%A1%88%E4%BE%8B.pdf)
+- [第04章2 调用返回风格](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A02%20%E8%B0%83%E7%94%A8%E8%BF%94%E5%9B%9E%E9%A3%8E%E6%A0%BC.pdf)
+- [第04章3 独立构件体系结构](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A03%20%E7%8B%AC%E7%AB%8B%E6%9E%84%E4%BB%B6%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.pdf)
+- [第04章4 虚拟机解释器体系结构](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A04%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E8%A7%A3%E9%87%8A%E5%99%A8%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.pdf)
+- [第04章5 以数据为中心的仓库体系结构](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A05%20%E4%BB%A5%E6%95%B0%E6%8D%AE%E4%B8%BA%E4%B8%AD%E5%BF%83%E7%9A%84%E4%BB%93%E5%BA%93%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84.pdf)
+
 
 报名或者修改自己的选题，发送邮件到`s.ziming@hotmail.com`。
 
