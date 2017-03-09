@@ -5,13 +5,16 @@ layout: page
 
 ![](/assets/images/android_arch.jpg)
 
-课件下载：
+课件 Part I:
+
 - [Chapter 1 Introduction](http://songziming.qiniudn.com/arch/chapter1_Introduction.pdf)
 - [Chapter 2 Modeling](http://songziming.qiniudn.com/chapter%202%20modeling.pdf)
 - [Chapter 4 Android Platform Review](http://songziming.qiniudn.com/chapter%204%20android%20platform%20overview.pdf)
 - [Chapter 5 Android Application Model](http://songziming.qiniudn.com/chapter%205%20android%20application%20model.pdf)
 - [Chapter 6 Android Internals](http://songziming.qiniudn.com/chapter%206%20Android%20Internals.pdf)
 - [Chapter 7 Android Binder IPC](http://songziming.qiniudn.com/Chapter%207%20android-binder-ipc.pdf)
+
+Part II:
 
 - [第03章 质量属性](http://songziming.qiniudn.com/%E7%AC%AC03%E7%AB%A0%20%E8%B4%A8%E9%87%8F%E5%B1%9E%E6%80%A7.pdf)
 - [第04章0 数据流风格](http://songziming.qiniudn.com/%E7%AC%AC04%E7%AB%A00%20%E6%95%B0%E6%8D%AE%E6%B5%81%E9%A3%8E%E6%A0%BC.pdf)
