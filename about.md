@@ -1,6 +1,6 @@
 ---
-layout: page
 title: About Me
+layout: page
 ---
 
 我是宋子明，目前就读于北京航空航天大学软件学院。
