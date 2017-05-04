@@ -1,5 +1,5 @@
-﻿---
-title: Android平台系统架构
+---
+title: Android Arch
 layout: page
 ---
 
