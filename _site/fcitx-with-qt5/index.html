@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>让 Qt5 支持 fcitx</title>
+
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="canonical" href="http://blog.szm.me/fcitx-with-qt5/">
+</head>
+<body>
+    <header class="header">
+    <div class="wrapper">
+        <div class="homelink-wrapper">
+            <a href="/" class="homelink">
+                <strong>Song Ziming's Blog</strong>
+            </a>
+        </div>
+        
+        <nav class="nav">
+        
+            <a href="/archives" class="nav-link">archives</a>
+        
+            <a href="/about" class="nav-link">about</a>
+        
+            <a href="https://github.com/songziming/blog" class="nav-link">source</a>
+        
+        </nav>
+    </div>
+</header>
+
+    <main class="wrapper">
+        <article class="article-block">
+    <header class="article-header">
+        <h1>让 Qt5 支持 fcitx</h1>
+        <p class="article-meta">
+            <time datetime="2015-06-30T00:00:00+08:00" itemprop="datePublished">2015-06-30</time>
+            
+                /
+                
+                    开发
+                
+            
+        </p>
+    </header>
+    <main class="article-content">
+        <p>Qt5 有一个让人头疼的问题，就是 Linux 下的中文输入法一直有问题。<a href="http://blog.csdn.net/crazyboy2009/article/details/38537099">这篇文章</a>给出了一种解决办法，通过复制文件实现，然而发现 Qt 版本 5.4 中此法并不能用，只要尝试启动程序就会段错误。</p>
+
+<h3>fcitx-qt5</h3>
+
+<p>在 Github 上有一个 <a href="https://github.com/fcitx/fcitx-qt5">fcitx-qt5</a> 项目，将这个项目的代码克隆到本地：</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">git clone https://github.com/fcitx/fcitx-qt5.git
+</code></pre></div>
+<p>这是一个使用 CMake 作为构建工具的项目，因此需要保证 CMake 已安装。该项目还依赖 extra-cmake-modules(ECM) 和 XKBCommon 模块，这两个模块通过系统的包管理工具应该都能安装。然而，在 Debian 系统下，extra-cmake-modules 软件包属于 testing 分支下，因此首先需要向 <code>/etc/apt/source.list</code> 文件加入一行：</p>
+<div class="highlight"><pre><code class="language-" data-lang="">deb http://httpredir.debian.org/debian testing main contrib non-free
+</code></pre></div>
+<p>注意其中的版本为 <code>testing</code>。修改软件源之后，执行 <code>sudo apt-get update</code> 更新缓存，并使用下面的命令进行安装：</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo apt-get -t testing install extra-cmake-modules
+</code></pre></div>
+<p>其中的参数 <code>-t testing</code> 表示使用 testing 源中的软件包。</p>
+
+<p>至于 XKBCommon，可以直接用下面的命令安装：</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sudo apt-get install libxkbcommon-dev
+</code></pre></div>
+<h3>编译生成</h3>
+
+<p>所有依赖项都准备好，接下来使用 Qt Creator 打开项目。使用命令行下的 cmake 来编译也是可以的，但是需要设置 Qt 模块的路径，而使用 Qt Creator 就没有这些问题。</p>
+
+<p>使用 Qt Creator 打开后，在项目右键菜单中选择 Build。编译完成后，会在 <code>fcitx-qt-build</code> 目录下看到最终的输出文件。</p>
+
+<p>为了使程序能够使用 fcitx 输入中文，需要将以下三个文件夹和其中的文件复制到可执行文件目录下：</p>
+<div class="highlight"><pre><code class="language-" data-lang="">.
+├── dbusaddons
+│   ├── libFcitxQt5DBusAddons.so -&gt; libFcitxQt5DBusAddons.so.1
+│   ├── libFcitxQt5DBusAddons.so.1 -&gt; libFcitxQt5DBusAddons.so.1.0
+│   └── libFcitxQt5DBusAddons.so.1.0
+├── platforminputcontext
+│   └── libfcitxplatforminputcontextplugin.so
+└── widgetsaddons
+    ├── libFcitxQt5WidgetsAddons.so -&gt; libFcitxQt5WidgetsAddons.so.1
+    ├── libFcitxQt5WidgetsAddons.so.1 -&gt; libFcitxQt5WidgetsAddons.so.1.0
+    └── libFcitxQt5WidgetsAddons.so.1.0
+</code></pre></div>
+<p>将这些文件复制到程序所在目录之后，就能使用搜狗输入中文了。</p>
+
+<h3>Qt Creator</h3>
+
+<p>Qt Creator 稍稍复杂一些，需要将上面生成的三个目录放在两个地方。首先需要把它们放在 Qt Creator 的安装位置中的插件目录下，通常是 <code>/opt/Qt/Tools/QtCreator/bin/plugins</code>。此外，还要将那三个目录复制到 Qt 安装目录下的全局插件目录中，通常地址是 <code>/opt/Qt/5.4/gcc_64/plugins</code>。</p>
+
+<p>需要注意的是，可能需要将 <code>platforminputcontext</code> 改名为 <code>platforminputcontexts</code>。</p>
+
+<p>最后还有一点，就是 Qt Creator 中 <code>Ctrl+Space</code> 是代码提示的快捷键，这与输入法切换的组合是冲突的，解决办法也很简单，到 Qt Creator 内修改快捷键设置，将其设为别的组合或者直接禁用。这样操作之后，就可以在 Qt Creator 中使用搜狗输入法打中文了。</p>
+
+<h3>Final</h3>
+
+<p>上面的解决方法似乎不太稳定，时好时坏。</p>
+
+<p>使用 <code>dpkg -L</code> 命令查看 <code>fcitx-frontend-qt5</code> 的安装文件，其中最后一行是 “/usr/lib/x86_64-linux-gnu/qt5/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin.so”，把这个文件连带 <code>platforminputcontexts</code> 目录复制到可执行文件的目录下，让可执行文件和 <code>platforminputcontexts</code> 位于同一级别，没有 <code>plugins</code> 目录。这样启动目标程序可以使程序支持搜狗输入法。</p>
+
+<p>注意，fcitx-qt5 项目编译出来的目录中有一个子目录名为 <code>platforminputcontext</code>，需要在其后加上一个 <code>s</code>，才能正常工作。</p>
+
+<h3>Linux 输入法</h3>
+
+<p>受到这个问题的启发，我深入地了解了以下 Linux 下的输入法架构。</p>
+
+<p>要了解 Linux 下的输入法，需要首先明确两个概念——输入法框架和输入法引擎：</p>
+
+<ul>
+<li>输入法框架（framework）是一个 Daemon，负责接受用户的键盘输入，并将输入结果发送给目标应用程序。</li>
+<li>输入法引擎（engine）是一个程序，负责分析用户的按键动作，给出一系列可能的结果，并把这些结果发送给输入法框架。</li>
+</ul>
+
+<p>总结起来，就是框架负责事件处理和通信，引擎进行思考。所有能看到的地方——面板、配置界面——都是框架的一部分，而引擎的工作都是看不见的。</p>
+
+<p>正是因为 Linux 将 framework 这部分暴露出来，所以才有了各种不同的输入法引擎。</p>
+
+<p>IBus 是许多 Linux 发行版的默认输入法框架，这是因为 IBus 是基于 GTK+ immodule 模块编写的，因此对 GNOME 桌面有完美的支持。目前由一名北大学生 Huang Peng 维护。项目地址：(https://github.com/ibus/ibus)。</p>
+
+<p>IBus 还有一个子项目——ibus-pinyin，这也是很多 GNOME 上的默认拼音输入法。最初使用 Python 写的，现在已经用 C++ 重写。</p>
+
+<p>参考：<a href="https://blogs.gnome.org/happyaron/2011/01/15/linux-input-method-brief-summary/">Linux input method framework brief summary</a></p>
+
+<h3>Qt 中的输入法</h3>
+
+<p><a href="http://www.kdab.com/qt-input-method-depth/">KDAB 上关于这部分的介绍</a></p>
+
+<p>假设我们要创建一个自定义的 Widget，这个 Widget 支持文字输入。我们当然不希望用 keyEvent 来接受键盘事件，因为这样只能输入英文，这是就需要 Qt 的输入法支持。</p>
+
+<p>至于 Qt 如何与输入法框架/引擎不在我们的考虑范围内，我们只关心如何使用。要让一个 Widget 与输入法配合起来，首先需要向输入法提供一些信息，其次需要从输入法接收一些信息。</p>
+
+<p>但是在这之前，需要设置一个 Attribute：</p>
+<div class="highlight"><pre><code class="language-c++" data-lang="c++"><span class="n">setAttribute</span><span class="p">(</span><span class="n">Qt</span><span class="o">::</span><span class="n">WA_InputMethodEnabled</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+</code></pre></div>
+<p>这样，Qt 才会认为这个 Widget 需要输入法支持。</p>
+
+<p>还有一个很重要但是经常忽视的地方，只有 focus 的 widget 才能接收按键事件。因此最好设置为：</p>
+<div class="highlight"><pre><code class="language-c++" data-lang="c++"><span class="n">setFocusPolicy</span><span class="p">(</span><span class="n">Qt</span><span class="o">::</span><span class="n">ClickFocus</span><span class="p">);</span>
+</code></pre></div>
+<p>接收输入法输入信息用的函数是 <code>inputMethodEvent(QInputMethodEvent*)</code>，参数是 <code>QInputMethodEvent</code> 类型的指针，该类型包含 4 个属性：
+- <code>preeditString</code>，通常是用户输入了还没有提交的内容，显示在输入法的面板中
+- <code>commitString</code>，用户提交的内容，需要显示在控件中
+- <code>replacementStart</code> 和 <code>replacementLength</code>，这两个属性表示需要将 preeditString 中的那一部分替换掉</p>
+
+<p>实验发现，后两个参数总是为0，而且输入法会在自己的面板上显示 <code>preeditString</code> 的内容，因此实际上控件只需要检查 commitString 的内容并将其插入到光标位置。</p>
+
+    </main>
+</article>
+
+<div id="disqus_thread" class="block article-comment"></div>
+<script type="text/javascript">
+var disqus_shortname = 'szm';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']]
+    }
+});
+</script>
+<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    </main>
+    <footer class="footer">
+    <div class="wrapper">
+        <p>© 2017 <a href="/about">Song Ziming</a></p>
+        <p>Generated using <a href="http://jekyllrb.com/">Jekyll</a>.
+            Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+        <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </div>
+</footer>
+
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-73870068-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+</body>
+</html>

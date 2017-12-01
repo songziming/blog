@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>用 GCC 和 Makefile 自动处理依赖关系</title>
+
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="canonical" href="http://blog.szm.me/manage-dependencies-with-gcc-and-make/">
+</head>
+<body>
+    <header class="header">
+    <div class="wrapper">
+        <div class="homelink-wrapper">
+            <a href="/" class="homelink">
+                <strong>Song Ziming's Blog</strong>
+            </a>
+        </div>
+        
+        <nav class="nav">
+        
+            <a href="/archives" class="nav-link">archives</a>
+        
+            <a href="/about" class="nav-link">about</a>
+        
+            <a href="https://github.com/songziming/blog" class="nav-link">source</a>
+        
+        </nav>
+    </div>
+</header>
+
+    <main class="wrapper">
+        <article class="article-block">
+    <header class="article-header">
+        <h1>用 GCC 和 Makefile 自动处理依赖关系</h1>
+        <p class="article-meta">
+            <time datetime="2016-01-18T00:00:00+08:00" itemprop="datePublished">2016-01-18</time>
+            
+                /
+                
+                    开发
+                
+            
+        </p>
+    </header>
+    <main class="article-content">
+        <p>Make 是一个非常好的工具，但是 Makefile 的编写却不是很方便，尤其是编译依赖关系的确定上。</p>
+
+<p>假设一个 C/C++ 项目有许多源文件、许多头文件，每个源文件里都引用了一些头文件。这时如果修改了其中的一个头文件，为了加快工程编译速度，应该只有引用了被改动头文件的源文件需要重新编译，其他源文件不需要再次编译。但是，Make 并不知道哪些源文件引用了这个头文件，要确定哪些源文件需要重新编译，只能根据 Makefile 中写定的规则进行判断。</p>
+
+<p>先来看一下 Makefile 中一条规则的语法：</p>
+<div class="highlight"><pre><code class="language-makefile" data-lang="makefile"><span class="nl">sample.o</span><span class="o">:</span> <span class="nf">sample.c header1.h header2.h</span>
+	CC -c -o <span class="nv">$@</span> <span class="nv">$&lt;</span>
+</code></pre></div>
+<p>这里面，<code>header1.h</code> 和 <code>header2.h</code> 便是 <code>sample.c</code> 所需的头文件，如果 <code>header1.h</code> 改了，Make 就能根据这条规则自动判断出，<code>sample.c</code> 需要重新编译。</p>
+
+<p>但是，这种方式需要在 Makefile 中显式写出引用了哪些头文件，每当 <code>sample.c</code> 增加或删去了一个头文件的引用，还需要更改 Makefile。如果项目规模比较大，头文件之间还会相互引用，这是将会是一件非常痛苦的事情。</p>
+
+<h3>生成依赖列表</h3>
+
+<p>幸好，GCC（以及 Clang）提供了自动生成依赖关系的功能，而且生成的依赖关系可以直接用在 Makefile 中。</p>
+
+<p>最简单的方法是使用参数 <code>-MM</code>，在上面的例子中，使用命令 <code>gcc -MM sample.c</code> 就可以在终端内输出依赖列表：</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">sample.o: sample.c header1.h header2.h
+</code></pre></div>
+<p>可以看到，格式正是 Makefie 需要的，完全可以把这个命令的输出结果直接复制到 Makefile 中去。</p>
+
+<p>其实生成依赖列表还有一个参数 <code>-M</code>，但是 <code>-M</code> 会把所有头文件输出，包括 <code>stdio.h</code> 这类的系统标准头文件，而 <code>-MM</code> 则会忽略这些标准头文件。由于在实际项目中，只有自定义头文件才会修改，因此 <code>-MM</code> 更加合适。</p>
+
+<p>默认情况下，使用 <code>-M</code> 或 <code>-MM</code> 生成的规则的目标名就是源文件明，将后缀替换为 <code>.o</code>，如果希望使用其他的目标名，可以增加一个 <code>-MT</code> 参数，例如：</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>gcc -MM -MT target.o sample.c
+target.o: sample.c header1.h header2.h
+</code></pre></div>
+<p>还有两个参数，<code>-MD</code> 和 <code>-MMD</code>，它们会让 GCC 在编译程序的同时生成依赖列表，并保存成文件。默认的文件名就是规则的目标，将后缀替换成 <code>.d</code>，如果要指定生成的文件名，可以使用参数 <code>-MF</code>。</p>
+
+<p>还有一个非常有用的参数是 <code>-MP</code>，它会给每个依赖的头文件生成一条规则，内容为空，就像这样：</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>gcc -MM -MP -MT target.o sample.c
+target.o: sample.c header1.h header2.h
+
+header1.h:
+
+header2.h:
+</code></pre></div>
+<p>生成这些多余的规则是非常有用的，如果删除了某些头文件而没有更新 Makefile，这些空规则可以避免因找不到头文件而报错退出。</p>
+
+<h3>自动化</h3>
+
+<p>用上面介绍的这些参数，能够自动生成依赖规则，但是仍然需要对每一个文件单独执行一遍。然而，若能和 Make 的模糊匹配结合起来，就可以实现真正的自动化管理。</p>
+
+<p>GNU Make 支持规则的正则表达式匹配，例如：</p>
+<div class="highlight"><pre><code class="language-makefile" data-lang="makefile"><span class="nl">%.o</span><span class="o">:</span> <span class="nf">%.c</span>
+	CC -c -o <span class="nv">$@</span> <span class="nv">$&lt;</span>
+</code></pre></div>
+<p>可以匹配所有 <code>.c</code> 文件生成 <code>.o</code> 文件的规则。如果在编译命令中加上 <code>-MMD</code> 参数，就能在编译的同时生成依赖列表文件：</p>
+<div class="highlight"><pre><code class="language-makefile" data-lang="makefile"><span class="nl">%.o</span><span class="o">:</span> <span class="nf">%.c</span>
+	CC -c -MT <span class="nv">$@</span> -MMD -MP -MF <span class="nv">$*</span>.d -o <span class="nv">$@</span> <span class="nv">$&lt;</span>
+</code></pre></div>
+<p>这样，在编译的同时，就会生成后缀名是 <code>.d</code> 的依赖文件。在 Makefile 文件末尾，可以用 <code>include</code> 命令包含这些依赖列表文件：</p>
+<div class="highlight"><pre><code class="language-makefile" data-lang="makefile"><span class="err">-include</span> <span class="err">$(patsubst</span> <span class="err">%,</span> <span class="err">%.d,</span> <span class="err">$(basename</span> <span class="err">$(sources)))</span>
+</code></pre></div>
+<p>其中变量 <code>$(sources)</code> 是全部的源文件，<code>patsubst</code> 函数的作用是将所有的源文件后缀名换成 <code>.d</code>，于是就成了刚刚生成的依赖列表文件。在 <code>include</code> 命令前加一个减号，可以避免找不到某个文件而报错。</p>
+
+<p>用这种方法，执行 Make 的时候会自动寻找依赖文件，如果没有就会在编译的同时生成依赖文件。如果找到了依赖列表文件，就会自动包含在 Makefile 中。</p>
+
+    </main>
+</article>
+
+<div id="disqus_thread" class="block article-comment"></div>
+<script type="text/javascript">
+var disqus_shortname = 'szm';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']]
+    }
+});
+</script>
+<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    </main>
+    <footer class="footer">
+    <div class="wrapper">
+        <p>© 2017 <a href="/about">Song Ziming</a></p>
+        <p>Generated using <a href="http://jekyllrb.com/">Jekyll</a>.
+            Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+        <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </div>
+</footer>
+
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-73870068-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+</body>
+</html>
