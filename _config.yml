@@ -6,7 +6,7 @@ root: /
 permalink: /:title/
 
 include: [".nojekyll"]
-exclude: ["README.md"]
+exclude: ["README.md", "deploy.sh"]
 
 markdown: redcarpet
 kramdown:

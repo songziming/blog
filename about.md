@@ -8,7 +8,7 @@ permalink: /about/
 
 喜欢计算机技术，时常鼓捣一些小项目。我对底层软件技术的兴趣尤为浓厚，例如操作系统，甚至还开发过一个小型操作系统 [Wheel](https://github.com/songziming/wheel.git)，并在开发过程中学习了许多底层的知识。
 
-我的联系方式：`echo cy56aW1pbmdAaG90bWFpbC5jb20K | base64 -d`。
+我的联系方式：`echo cy56aW1pbmdAaG90bWFpbC5jb20K | base64 -d`
 
 ### 关于此博客
 

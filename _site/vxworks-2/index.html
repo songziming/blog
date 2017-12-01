@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <title>About Me</title>
+    <title>VxWorks 代码分析 2</title>
 
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="http://blog.szm.me/about/">
+    <link rel="canonical" href="http://blog.szm.me/vxworks-2/">
 </head>
 <body>
     <header class="header">
@@ -35,37 +35,46 @@
     <main class="wrapper">
         <article class="article-block">
     <header class="article-header">
-        <h1>About Me</h1>
+        <h1>VxWorks 代码分析 2</h1>
+        <p class="article-meta">
+            <time datetime="2017-12-02T00:00:00+08:00" itemprop="datePublished">2017-12-02</time>
+            
+                /
+                
+                    VxWorks
+                
+            
+        </p>
     </header>
     <main class="article-content">
-        <p>我是宋子明，目前就读于北京航空航天大学软件学院。</p>
+        <p>本文分析 VxWorks 中类与对象的实现。</p>
 
-<p>喜欢计算机技术，时常鼓捣一些小项目。我对底层软件技术的兴趣尤为浓厚，例如操作系统，甚至还开发过一个小型操作系统 <a href="https://github.com/songziming/wheel.git">Wheel</a>，并在开发过程中学习了许多底层的知识。</p>
+<h3>类和对象</h3>
 
-<p>我的联系方式：<code>echo cy56aW1pbmdAaG90bWFpbC5jb20K | base64 -d</code></p>
-
-<h3>关于此博客</h3>
-
-<p>你现在看到的博客经历了无数次改版和推倒重来（折腾），现在这个版本是用 <a href="https://jekyllrb.com/">Jekyll</a> 生成的静态网站，建站过程还算顺利，但设计这个主题耗费了我不少的精力，可以在<a href="https://github.com/songziming/blog">这里</a>看到网站的源代码。</p>
-
-<p>博客里的文章不多（主要是觉得丢人删掉了），都是日常学习的总结。这些文章主要是些给我自己写的，以供日后需要时翻看。</p>
-
-<h3>我的朋友们</h3>
-
-<p>如果你觉得这个博客挺好，不妨也看看我朋友们的博客：</p>
-
-<!-- - [康乔](http://www.kangdandan.com/) -->
-
-<ul>
-<li><a href="http://wcqblog.github.io/">荒原</a></li>
-<li><a href="http://www.renfei.org/blog/">Renfei Song</a></li>
-<li><a href="http://wanzy.me/blog/">羽民</a></li>
-<li><a href="http://timmyxu.me">峯少</a></li>
-<li><a href="http://heavenduke.com">渣诚</a></li>
-</ul>
+<p>VxWorks 主要使用 C 语言开发，但是却采用了面向对象的设计思想。内核中的许多数据结构都是对象，例如任务控制块（TCB）、信号量、消息队列等。</p>
 
     </main>
 </article>
+
+<div id="disqus_thread" class="block article-comment"></div>
+<script type="text/javascript">
+var disqus_shortname = 'szm';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']]
+    }
+});
+</script>
+<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
     </main>
     <footer class="footer">
