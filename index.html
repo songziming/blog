@@ -1,13 +1,13 @@
 ---
-layout: base
+layout: default
 ---
 
 {% for post in site.posts limit: 10 %}
-<article class="block">
+<article class="article-block">
     <header class="article-header">
         <h1><a href="{{ post.url }}" class="article-title">{{ post.title }}</a></h1>
         <p class="article-meta">
-            <time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date_to_long_string }}</time>
+            <time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%Y-%m-%d" }}</time>
             {% if post.categories %}
                 /
                 {% for category in post.categories %}
@@ -22,14 +22,3 @@ layout: base
     </main>
 </article>
 {% endfor %}
-
-<!-- <nav class="page-nav block">
-    <%- paginator({prev_text: '&laquo; prev', next_text: 'next &raquo;'}) %>
-</nav> -->
-
-{% if paginator.total_pages > 1 %}
-<nav class="page-nav block">
-    <!-- <%- paginator({prev_text: '&laquo; prev', next_text: 'next &raquo;'}) %> -->
-    prev next page
-</nav>
-{% endif %}

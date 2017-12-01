@@ -1,9 +1,11 @@
 ---
-# dumy front matter
+# dummy front matter
 ---
 
 @charset "utf-8";
 
+@import "font";
 @import "normalize";
-@import "solarized";
 @import "style";
+@import "solarized";
+//@import "syntax-highlighting"

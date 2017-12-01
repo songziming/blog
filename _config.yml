@@ -5,13 +5,18 @@ url: http://blog.szm.me
 root: /
 permalink: /:title/
 
-markdown: kramdown
+include: [".nojekyll"]
+exclude: ["README.md"]
 
+markdown: redcarpet
+kramdown:
+    input: GFM
+redcarpet:
+    extensions:
+        - fenced_code_blocks
+        - tables
 sass:
     style: compressed
-
-exclude: ["CNAME"]
-
 defaults:
     -
         scope:
@@ -19,20 +24,10 @@ defaults:
         values:
             layout: "post"
 
-#-------------------------------------------------------------------------------
-
-disqus_shortname: szm
-ganalytics_id: UA-73870068-1
-
 menu:
     archives: /archives
     about: /about
     source: https://github.com/songziming/blog
-    "Android平台系统架构": /arch
 
-links:
-    荒原: http://wcqblog.github.io/
-    Renfei Song: http://www.renfei.org/blog/
-    羽民: http://wanzy.me/blog/
-    峯少: http://timmyxu.me
-    渣诚: http://heavenduke.com
+disqus_shortname: szm
+ganalytics_id: UA-73870068-1
