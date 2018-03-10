@@ -8,7 +8,7 @@
 body {
     color: #111;
     background: #fff;
-    font-size: 16px;
+    font-size: 14px;
     font-family: "Open Sans", "Helvetica Neue", "WenQuanYi Micro Hei", "Hiragino Sans GB", "Hiragino Sans GB W3", "Microsoft YaHei", sans-serif;
     -webkit-text-size-adjust: 100%;
     -webkit-font-feature-settings: "kern" 1;
@@ -62,7 +62,8 @@ main.wrapper {
 
 .header {
     display: block;
-    background: #f0f0f0;
+    // background: #f0f0f0;
+    box-shadow: 0px 1px 5px #bbb;
 }
 
 .homelink-wrapper {
@@ -170,13 +171,14 @@ main.wrapper {
 
 .article-block {
     overflow: hidden;
-    margin: 20px 0;
+    margin: 20px 10px;
+    box-shadow: 0px 1px 5px #bbb;
 }
 
 .article-header {
     color: #555;
-    padding: 5px 20px;
-    border-left: 2px solid #888;
+    padding: 10px 20px 5px 17px;
+    border-left: 3px solid #888;
     overflow: hidden;
 }
 
@@ -274,22 +276,21 @@ img {
 .article-content > table, blockquote > table {
     margin: 16px auto;
     border-spacing: 0;
-    border: 2px solid #0e83cd;
+    border-collapse: collapse;
 }
 
 .article-content > table th, .article-content > table td, blockquote > table th, blockquote > table td {
     padding: 1px 10px;
-    font-weight: normal;
+    border: 1px solid #ccc;
 }
 
 .article-content > table thead, blockquote > table thead {
-    background: #0e83cd;
-    color: #fff;
-    border: none;
+    background: #efefef;
+    font-weight: bold;
 }
 
 .article-content > table tbody tr, blockquote > table tbody tr {
-    border-bottom: 1px solid #ddd;
+    font-weight: normal;
 }
 
 .article-content > table tbody tr:last-child, blockquote > table tbody tr:last-child {
@@ -349,7 +350,7 @@ ul.category-list-child,
 ul.tag-list,
 ul.link-list {
     margin-top: 0;
-    list-style:none;
+    list-style: none;
     padding-left: 15px;
 }
 
