@@ -8,9 +8,9 @@
 body {
     color: #111;
     background: #fff;
-    font-size: 14px;
+    font-size: 16px;
     font-family: "Open Sans", "Helvetica Neue", "WenQuanYi Micro Hei", "Hiragino Sans GB", "Hiragino Sans GB W3", "Microsoft YaHei", sans-serif;
-    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     -webkit-font-feature-settings: "kern" 1;
     -moz-font-feature-settings: "kern" 1;
     -o-font-feature-settings: "kern" 1;
@@ -32,6 +32,7 @@ h5 {
 
 p {
     margin: 0.5em 0;
+    text-align: justify;
 }
 
 a {
@@ -62,8 +63,8 @@ main.wrapper {
 
 .header {
     display: block;
-    // background: #f0f0f0;
-    box-shadow: 0px 1px 5px #bbb;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ddd;
 }
 
 .homelink-wrapper {
@@ -113,7 +114,7 @@ main.wrapper {
 }
 
 .nav {
-    float: left;
+    float: right;
     line-height: 40px;
     padding: 12px 15px;
 }
@@ -171,14 +172,23 @@ main.wrapper {
 
 .article-block {
     overflow: hidden;
-    margin: 20px 10px;
-    box-shadow: 0px 1px 5px #bbb;
+    padding: 10px 0;
+}
+
+.article-entry-block {
+    overflow: hidden;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.article-entry-block:last-child {
+    border-bottom: 0px;
 }
 
 .article-header {
     color: #555;
-    padding: 10px 20px 5px 17px;
-    border-left: 3px solid #888;
+    padding: 10px 20px 5px 20px;
+    // border-left: 3px solid #888;
     overflow: hidden;
 }
 
@@ -218,7 +228,7 @@ code {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    font-size: 0.9em;
+    font-size: 14px;
 }
 
 :not(pre) > code {
@@ -258,10 +268,10 @@ blockquote {
 }
 
 hr {
-    margin: 20px -20px;
+    margin: 20px 0;
     padding: 0;
     border: none;
-    border-top: 2px solid #ccc;
+    border-top: 1px solid #ccc;
 }
 
 img {

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <title>内存</title>
+    <title>内存结构</title>
 
     <link rel="stylesheet" href="/assets/css/main.css">
     <link rel="canonical" href="http://blog.szm.me/memory/">
@@ -16,7 +16,7 @@
     <div class="wrapper">
         <div class="homelink-wrapper">
             <a href="/" class="homelink">
-                <strong>Song Ziming's Blog</strong>
+                <strong>blog.szm.me</strong>
             </a>
         </div>
         
@@ -35,21 +35,26 @@
     <main class="wrapper">
         <article class="article-block">
     <header class="article-header">
-        <h1>内存</h1>
+        <h1>内存结构</h1>
         <p class="article-meta">
             <time datetime="2018-03-03T00:00:00+08:00" itemprop="datePublished">2018-03-03</time>
             
                 /
                 
-                    memory
+                    底层
                 
             
         </p>
     </header>
     <main class="article-content">
-        <p>参考资料：
-- <a href="https://www.techbang.com/posts/18381-from-the-channel-to-address-computer-main-memory-structures-to-understand">圖解RAM結構與原理，系統記憶體的Channel、Chip與Bank</a>
-- <a href="https://lwn.net/Articles/250967/">What every programmer should know about memory, Part 1</a></p>
+        <blockquote>
+<p>参考资料：</p>
+
+<ul>
+<li><a href="https://www.techbang.com/posts/18381-from-the-channel-to-address-computer-main-memory-structures-to-understand">圖解RAM結構與原理，系統記憶體的Channel、Chip與Bank</a></li>
+<li><a href="https://lwn.net/Articles/250967/">What every programmer should know about memory, Part 1</a></li>
+</ul>
+</blockquote>
 
 <h3>内存地址到内存条</h3>
 
@@ -69,11 +74,27 @@
 
 <p>channel（通道）可能只有一个，DIMM 通常就是一个内存条包装。rank（路）</p>
 
-<p>最基本的数据单元（storage cell）的结构是二维矩阵，每一行就叫做一个 row，每一列叫做一个 column。此外还有两个特殊的 row，分别是 input-buffer 和 row-buffer，是执行内存写入和读取操作时的缓冲区。</p>
+<p>最基本的数据单元（storage cell）的结构是二维矩阵，叫做 Chip，每一行就叫做一个 row，每一列叫做一个 column。此外还有一个 row-buffer，是执行内存写入和读取操作时的缓冲区。</p>
 
 <p>对一个 row/column 矩阵执行的读写操作单位是 bit，也就是对于一个 row/column 矩阵，只能一次读一个 bit，写一个 bit。</p>
 
-<p>但是 CPU 往往一次操作多个 bit，例如对于 64-bit 的 CPU，每次内存读写操作对应 64 个 bit。因此，在</p>
+<p>但是 CPU 往往一次操作多个 bit，例如对于 64-bit 的 CPU，每次内存读写操作对应 64 个 bit。因此，同时有 64 个 CHIP 同时工作，如果是启用了 ECC 的内存，则有 72 个。</p>
+
+<h3>访问周期</h3>
+
+<p>DRAM 也有自己的频率，但是一次内存访问并不能在一个周期之内完成。虽然 DDR 内存可以在一个周期之内传递两个机器字的数据，但是寻址需要花费很多时间。</p>
+
+<p>之间说过，最基本的 chip 组织成二维矩阵的形式，因此在访问内存的时候，需要指定要访问其中哪一行、哪一列。指定行的过程叫做 RAS（Row Address Selection），指定列的过程叫做 CAS（Column Address Selection）。RAS 和 CAS 是串行进行的，RAS 之后，内存会把选定的行中的数据放入 row-buffer 里。如果相邻两次内存访问的 RAS 取值相同，那么可以省去第二次的 RAS，提升速度。</p>
+
+<p>访问一次内存消耗的时间较长，因此内存通过增加数据吞吐量的方法来补偿。</p>
+
+<h3>memory allocator 优化</h3>
+
+<p>有些 memory allocator 已经开始考虑缓存的影响了，让数据尽量位于同一个缓存行（cache line）之中。类似，考虑了 DRAM 结构之后，可以让数据尽可能位于同一个 row-buffer 之中，这样，访问相同 row 可以提升一定的速度。</p>
+
+<p>此外，让不同的线程使用不同的 bank，这样不同 bank 可以独立进行寻址，访问内存在硬件层次上可以并行。</p>
+
+<p>尽可能让不同 thread 使用的物理页对应相同的 cache line，对应不同的 bank，因此相关逻辑应该在 page frame allocator 中实现，配合 page coloring 技术。</p>
 
 <h3>dmidecode</h3>
 
@@ -283,6 +304,14 @@
 - 循环中进行的内存分配通常都是大小相同的。</p>
 
 <p>文章借助编译器对程序进行 instrumentation，利用 LLVM 识别循环和 malloc/free 的调用信息。</p>
+
+<h3>NUMA</h3>
+
+<p>NUMA 表示非均匀内存访问，也就是在系统中，每个处理器访问内存的速度是不同。对于 x86 处理器来说，如果一个计算机中只安装了一块多核处理器，那么这个计算机是一个标准的 UMA 架构，因为同一个硅片上的逻辑处理共享同一个内存控制器（原北桥芯片），因此它们看到的内存结构是相同的。</p>
+
+<p>如果计算机主板上有多个CPU插槽，情况就不一样了。由于每个CPU包装（package）都集成了自己的内存控制器，因此不同插槽上的处理器所看到的内存并不是均匀的。每个插槽（或者节点）都有一部分与其关联的内存，访问这部分内存速度较快；访问其他节点关联的内存则速度较慢。因此，对于单节点的多核处理器，并不是NUMA结构，NUMA的特点仅仅在多处理器的情况下才会体现出来。</p>
+
+<p>所以，虽然x86使用了NUMA架构，但是对于普通桌面系统而言，并不需要去考虑。只有那些高性能的服务器才需要考虑NUMA的影响。</p>
 
     </main>
 </article>
