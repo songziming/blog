@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>VxWorks 代码分析</title>
+
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="canonical" href="http://blog.szm.me/vxworks/">
+</head>
+<body>
+    <header class="header">
+    <div class="wrapper">
+        <div class="homelink-wrapper">
+            <a href="/" class="homelink">
+                <strong>blog.szm.me</strong>
+            </a>
+        </div>
+        
+        <nav class="nav">
+        
+            <a href="/archives" class="nav-link">archives</a>
+        
+            <a href="/about" class="nav-link">about</a>
+        
+            <a href="https://github.com/songziming/blog" class="nav-link">source</a>
+        
+        </nav>
+    </div>
+</header>
+
+    <main class="wrapper">
+        <article class="article-block">
+    <header class="article-header">
+        <h1>VxWorks 代码分析</h1>
+        <p class="article-meta">
+            <time datetime="2017-12-02T00:00:00+08:00" itemprop="datePublished">2017-12-02</time>
+            
+                /
+                
+                    VxWorks
+                
+            
+        </p>
+    </header>
+    <main class="article-content">
+        <p>由于项目关系，有幸接触到了 VxWorks 的源代码，于是带着膜拜的心态开始阅读并分析其源代码，并将分析的结果记录在这里。我分析的版本是 VxWorks 6.7。</p>
+
+<p>国内关于 VxWorks 的资料比较少，而且网上找到的资料不少是针对 VxWorks 5.x 的，和旧版比起来，VxWorks 6.x 增加了对多核硬件（SMP）的支持，并且加入了实时进程（RTP），可以开发用户态的应用程序，代码上的区别还是很大的。</p>
+
+<h3>文件组织结构</h3>
+
+<p>假设 VxWorks 开发套件安装在 <code>C:\WindRiver</code>，那么 VxWorks 6.7 的源代码位于 <code>C:\WindRiver\vxworks-6.7\target</code>。其中有如下子目录：</p>
+
+<blockquote>
+<ul>
+<li><code>config</code>：这个目录中包括所有的 BSP
+
+<ul>
+<li><code>comps/VxWorks</code>：包含系统默认的组件定义文件（CDF）</li>
+<li><code>comps/src</code>：这个目录下包含 configlettes，也就是一些短小的配置代码</li>
+</ul></li>
+<li><code>h</code>：VxWorks 内核头文件
+
+<ul>
+<li><code>private</code>：私有头文件，只有 <code>src</code> 中的代码能够访问</li>
+<li><code>make</code>：Makefile 片段文件，这些文件会被各个工程的 Makefile 中引用</li>
+<li><code>tool</code>：包含与工具链相关的 Makefile 片段，以及链接脚本</li>
+</ul></li>
+<li><code>src</code>：VxWorks 内核的源文件</li>
+<li><code>lib</code>：这个目录保存编译生成的内核库（单核版本）</li>
+<li><code>lib_smp</code>：这个目录保存编译生成的内核库（多核版本）</li>
+<li><code>usr</code>：所有用户态相关的文件都放在这里（RTP）
+
+<ul>
+<li><code>h</code>：用户态代码使用的头文件</li>
+<li><code>src</code>：用户层库的源文件</li>
+<li><code>lib</code>：保存编译生成的用户库</li>
+</ul></li>
+</ul>
+</blockquote>
+
+<p>VxWorks内核的源代码就放在 <code>src</code> 目录下，这个目录下面又有许多子目录，比较重要的两个是 <code>wind</code> 和 <code>os</code>。<code>wind</code> 目录下包含任务管理相关代码，<code>os</code> 下则包含对象系统、内存管理等内容。</p>
+
+<p>VxWorks 是模块化设计的，代码也是按照模块化组织的。VxWorks 把模块划分得非常精细，一个典型的模块就包括一个 C 文件和一个头文件。例如内存管理模块 memPartLib，相关代码包括 <code>src/os/mm/memPartLib.c</code>、<code>h/memPartLib.h</code>、<code>h/private/memPartLibP.h</code>，其中 <code>h/private</code> 中的头文件是私有头文件，风河不保证私有头文件中的函数接口发生改变，因此开发者为了确保与后续版本的 VxWorks 兼容，在开发中应该使用 VxWorks 的公开 API。</p>
+
+<p>VxWorks 将功能相关的模块放在同一个目录下，每个目录下还有一个 <code>Makefile</code> 文件，这个文件用来指导 VxWorks 内核的编译过程。需要说明的是，编译 VxWorks 内核生成的不是完整 OS，而是<strong>内核库</strong>，要创建一个完整的 OS，需要得到内核库之后创建 VIP 项目，下一节会有详细说明。</p>
+
+<h3>VxWorks 的常规开发流程</h3>
+
+<p>平时我们讲 Linux 开发，通常意思是在 Linux 系统之上进行开发应用程序，同时开发出来的应用程序也运行在 Linux 系统上。然而 VxWorks 是一个嵌入式系统，我们不方便在 VxWorks 中进行开发，一般而言，VxWorks 开发工作是在一个运行着 Linux 或 Windows 的开发机上进行的，在开发机上编译之后，再把生成的东西放在开发板上运行。而且编译出来的也不是应用程序，而是一个系统镜像（system image），这个系统镜像可以直接加载到开发版上，或者烧录到设备 ROM 中。</p>
+
+<p>这种系统镜像类型的项目叫做 VIP（VxWorks Image Project），它产生的输出就是一个完整的 OS。而且 VxWorks 的可定制成都很高，开发者可以选择这个 OS 中需要哪些功能，不需要那些功能，还有相关配置参数的取值。开发工具会根据用户的配置，生成一个定制的系统镜像。</p>
+
+<p>VIP 项目的构建过程其实非常简单，就是把相关的静态库链接在一起。由于静态库实际上就是若干目标文件的打包，因此静态库链接就相当于把一对目标文件链接在一起。根据 VIP 项目中的用户配置，开发工具可以选择链接哪些目标文件，不链接哪些目标文件，这就实现了系统功能的定制。（当然，VIP 构建过程肯定不是只有链接，BSP代码、开发者编写的代码、根据 VIP 配置自动生成的代码，这些都需要进行编译，并于内核库共同链接。）</p>
+
+<p>因此，构建 VIP 项目之前，需要保证所需静态库存在，这些静态库就是<strong>内核库</strong>，通过编译 VxWorks 内核源代码生成。编译内核库有两种方式：</p>
+
+<ul>
+<li>通过命令行，在 <code>src</code> 目录下执行 <code>make CPU=PENTIUM TOOL=gnu VXBUILD=SMP</code> 命令来编译（当然，需要根据具体的目标平台、编译器和多核选项来调整构建参数）。这种方式生成的静态库会保存在 <code>lib</code> 或 <code>lib_smp</code> 目录下（取决于单核还是多核）。</li>
+<li>通过集成开发环境 Workbench，创建 VSB（VxWorks Source Build）项目，构建 VSB 项目来编译内核库。这样生成的内核库会位于 VSB 项目目录中。</li>
+</ul>
+
+<p>风河之所以将编译 VxWorks 的过程分为两步，一个原因是这可以加快 VIP 项目的构建速度，另一个原因则是用户可以在没有源代码的情况下使用 VxWorks 开发。用户可以创建 BSP 项目开发自己的版级支持包，也可以创建 VIP 项目，编写自己的内核应用程序，但是系统核心部分的代码是不变的。因此首先把系统核心部分编译成静态链接库，这样在构建 BSP 项目时就可以直接链接已经生成的库。</p>
+
+<hr>
+
+<p>接下来对 VxWorks 代码进行分析。</p>
+
+<h3>对象系统</h3>
+
+<p>尽管 VxWorks 主要使用 C 语言开发，但是仍然大量应用了面向对象的思想。</p>
+
+<hr>
+
+<h3>任务（Task）</h3>
+
+<p>任务的概念可谓是 VxWorks 的核心，基于 VxWorks 开发的内核应用程序就是以任务的方式运行的，系统中的许多关键服务也是以任务运行的。</p>
+
+<p>VxWorks 中的任务类似于 Linux 系统中的内核线程，是系统中最基本的独立执行单元。任务运行在特权模式，相互之间没有地址空间隔离，整个系统共用同一套虚拟地址空间（暂时不考虑 RTP 的情况）。</p>
+
+    </main>
+</article>
+
+<div id="disqus_thread" class="article-block article-comment"></div>
+<script type="text/javascript">
+var disqus_shortname = 'szm';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']]
+    }
+});
+</script>
+<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    </main>
+    <footer class="footer">
+    <div class="wrapper">
+        <p>© 2018 <a href="/about">Song Ziming</a></p>
+        <p>Generated using <a href="http://jekyllrb.com/">Jekyll</a>.
+            Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+        <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </div>
+</footer>
+
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-73870068-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+</body>
+</html>
