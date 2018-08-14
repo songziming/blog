@@ -3,6 +3,6 @@ Thumbs.db
 *.swp
 *~
 
-_site/
-.sass-cache/
-.jekyll-metadata
+tmp/
+output/
+crash.log

@@ -1,0 +1,19 @@
+title:  blog.szm.me
+author: Song Ziming
+
+text_extentions: [ "html", "css", "js", "md" ]
+
+prune:
+    auto_prune: true
+    exclude: [ ".git" ]
+
+data_sources:
+    -   type: filesystem
+        encoding: utf-8
+
+deploy:
+    default:
+        kind: git
+        remote: https://github.com/songziming/blog.git
+        branch: prod
+        forced: true

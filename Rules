@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+layout "/**/*", :erb
+
+compile "/index.html" do
+    filter :erb
+    layout "/page.*"
+    write  "/index.html"
+end
+
+compile "/*.html" do
+    filter :erb
+    layout "/page.*"
+    write  item.identifier.without_ext + "/index.html"
+end
+
+compile "/posts/**/*.md" do
+    filter :kramdown, input: 'GFM', syntax_highlighter: 'rouge'
+    layout "/post.*"
+    layout "/page.*"
+    write  item.identifier.without_ext.sub(/^\/posts/, "") + "/index.html"
+end
+
+compile "/**/*" do
+    write  item.identifier.to_s
+end

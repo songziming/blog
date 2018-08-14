@@ -1,0 +1,11 @@
+<article class="article">
+    <div class="article-header">
+        <h1 class="article-title"><%= @item[:title] %></h1>
+        <p class="article-meta">
+            Category: <%= categories(@item) %> | Tags: <%= tags(@item) %>
+        </p>
+    </div>
+    <div class="article-content">
+        <%= yield %>
+    </div>
+</article>

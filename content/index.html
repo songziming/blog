@@ -1,0 +1,15 @@
+<% sorted_articles.each do |post| %>
+<section class="article">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="<%= post.path %>"><%= post[:title] %></a>
+        </h1>
+        <p class="article-meta">
+            Category: <%= categories(post) %> | Tags: <%= tags(post) %>
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt"><%= excerpt(post) %></p>
+    </div>
+</section>
+<% end %>
