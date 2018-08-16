@@ -1,0 +1,170 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>用 GCC 和 Makefile 自动处理依赖关系</title>
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header id="header" class="header">
+        <div class="wrapper-full">
+            <div class="homelink-wrapper">
+                <a href="/" class="homelink">
+                    <strong>blog.szm.me</strong>
+                </a>
+            </div>
+            <nav class="navlink-wrapper">
+                <a href="/archive" class="navlink">archive</a>
+                <!-- <a href="/about" class="navlink">about</a> -->
+                <a href="/source" class="navlink">source</a>
+            </nav>
+        </div>
+    </header>
+    <main class="wrapper-full">
+        <aside id="sidebar" class="sidebar">
+    <p>Table of Contents:</p>
+    <ul>
+    <li><p><a href="#section">生成依赖列表</a></p></li><li><p><a href="#section-1">自动化</a></p></li>
+    </ul>
+</aside>
+
+<article class="article content">
+    <div class="article-header">
+        <h1 class="article-title">用 GCC 和 Makefile 自动处理依赖关系</h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 开发 linux
+        </p>
+    </div>
+    <div class="article-content">
+        
+<p>Make 是一个非常好的工具，但是 Makefile 的编写却不是很方便，尤其是编译依赖关系的确定上。</p>
+
+<p>假设一个 C/C++ 项目有许多源文件、许多头文件，每个源文件里都引用了一些头文件。这时如果修改了其中的一个头文件，为了加快工程编译速度，应该只有引用了被改动头文件的源文件需要重新编译，其他源文件不需要再次编译。但是，Make 并不知道哪些源文件引用了这个头文件，要确定哪些源文件需要重新编译，只能根据 Makefile 中写定的规则进行判断。</p>
+
+<p>先来看一下 Makefile 中一条规则的语法：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="nl">sample.o</span><span class="o">:</span> <span class="nf">sample.c header1.h header2.h</span>
+    <span class="err">CC</span> <span class="err">-c</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$&lt;</span>
+</code></pre>
+</div>
+
+<p>这里面，<code class="highlighter-rouge"> header1.h</code> 和 <code class="highlighter-rouge">header2.h</code> 便是 <code class="highlighter-rouge">sample.c</code> 所需的头文件，如果 <code class="highlighter-rouge">header1.h</code> 改了，Make 就能根据这条规则自动判断出，<code class="highlighter-rouge">sample.c</code> 需要重新编译。</p>
+
+<p>但是，这种方式需要在 Makefile 中显式写出引用了哪些头文件，每当 <code class="highlighter-rouge">sample.c</code> 增加或删去了一个头文件的引用，还需要更改 Makefile。如果项目规模比较大，头文件之间还会相互引用，这是将会是一件非常痛苦的事情。</p>
+
+<h3 id="section">生成依赖列表</h3>
+
+<p>幸好，GCC（以及 Clang）提供了自动生成依赖关系的功能，而且生成的依赖关系可以直接用在 Makefile 中。</p>
+
+<p>最简单的方法是使用参数 <code class="highlighter-rouge">-MM</code>，在上面的例子中，使用命令 <code class="highlighter-rouge">gcc -MM sample.c</code> 就可以在终端内输出依赖列表：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>sample.o: sample.c header1.h header2.h
+</code></pre>
+</div>
+
+<p>可以看到，格式正是 Makefie 需要的，完全可以把这个命令的输出结果直接复制到 Makefile 中去。</p>
+
+<p>其实生成依赖列表还有一个参数 <code class="highlighter-rouge">-M</code>，但是 <code class="highlighter-rouge">-M</code> 会把所有头文件输出，包括 <code class="highlighter-rouge">stdio.h</code> 这类的系统标准头文件，而 <code class="highlighter-rouge">-MM</code> 则会忽略这些标准头文件。由于在实际项目中，只有自定义头文件才会修改，因此 <code class="highlighter-rouge">-MM</code> 更加合适。</p>
+
+<p>默认情况下，使用 <code class="highlighter-rouge">-M</code> 或 <code class="highlighter-rouge">-MM</code> 生成的规则的目标名就是源文件明，将后缀替换为 <code class="highlighter-rouge">.o</code>，如果希望使用其他的目标名，可以增加一个 <code class="highlighter-rouge">-MT</code> 参数，例如：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>gcc -MM -MT target.o sample.c
+target.o: sample.c header1.h header2.h
+</code></pre>
+</div>
+
+<p>还有两个参数，<code class="highlighter-rouge">-MD</code> 和 <code class="highlighter-rouge">-MMD</code>，它们会让 GCC 在编译程序的同时生成依赖列表，并保存成文件。默认的文件名就是规则的目标，将后缀替换成 <code class="highlighter-rouge">.d</code>，如果要指定生成的文件名，可以使用参数 <code class="highlighter-rouge">-MF</code>。</p>
+
+<p>还有一个非常有用的参数是 <code class="highlighter-rouge">-MP</code>，它会给每个依赖的头文件生成一条规则，内容为空，就像这样：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>gcc -MM -MP -MT target.o sample.c
+target.o: sample.c header1.h header2.h
+
+header1.h:
+
+header2.h:
+</code></pre>
+</div>
+
+<p>生成这些多余的规则是非常有用的，如果删除了某些头文件而没有更新 Makefile，这些空规则可以避免因找不到头文件而报错退出。</p>
+
+<h3 id="section-1">自动化</h3>
+
+<p>用上面介绍的这些参数，能够自动生成依赖规则，但是仍然需要对每一个文件单独执行一遍。然而，若能和 Make 的模糊匹配结合起来，就可以实现真正的自动化管理。</p>
+
+<p>GNU Make 支持规则的正则表达式匹配，例如：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="nl">%.o</span><span class="o">:</span> <span class="nf">%.c</span>
+    <span class="err">CC</span> <span class="err">-c</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$&lt;</span>
+</code></pre>
+</div>
+
+<p>可以匹配所有 <code class="highlighter-rouge">.c</code> 文件生成 <code class="highlighter-rouge">.o</code> 文件的规则。如果在编译命令中加上 <code class="highlighter-rouge">-MMD</code> 参数，就能在编译的同时生成依赖列表文件：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="nl">%.o</span><span class="o">:</span> <span class="nf">%.c</span>
+    <span class="err">CC</span> <span class="err">-c</span> <span class="err">-MT</span> <span class="err">$@</span> <span class="err">-MMD</span> <span class="err">-MP</span> <span class="err">-MF</span> <span class="err">$*.d</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$&lt;</span>
+</code></pre>
+</div>
+
+<p>这样，在编译的同时，就会生成后缀名是 <code class="highlighter-rouge">.d</code> 的依赖文件。在 Makefile 文件末尾，可以用 <code class="highlighter-rouge">include</code> 命令包含这些依赖列表文件：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="err">-include</span> <span class="err">$(patsubst</span> <span class="err">%,</span> <span class="err">%.d,</span> <span class="err">$(basename</span> <span class="err">$(sources)))</span>
+</code></pre>
+</div>
+
+<p>其中变量 <code class="highlighter-rouge">$(sources)</code> 是全部的源文件，<code class="highlighter-rouge">patsubst</code> 函数的作用是将所有的源文件后缀名换成 <code class="highlighter-rouge">.d</code>，于是就成了刚刚生成的依赖列表文件。在 <code class="highlighter-rouge">include</code> 命令前加一个减号，可以避免找不到某个文件而报错。</p>
+
+<p>用这种方法，执行 Make 的时候会自动寻找依赖文件，如果没有就会在编译的同时生成依赖文件。如果找到了依赖列表文件，就会自动包含在 Makefile 中。</p>
+
+    </div>
+</article>
+
+<script>
+// 计算offsetTop的时候，里面不包含 margin，因此我们这里需要把 margin 计算进来
+var sidebar;
+var min_y;
+var max_y;
+
+window.onload = function() {
+    sidebar    = document.getElementById("sidebar");
+    var header = document.getElementById("header");
+    var footer = document.getElementById("footer");
+    var limit  = Math.max(document.body.scrollHeight,
+                          document.body.offsetHeight,
+                          document.documentElement.clientHeight,
+                          document.documentElement.scrollHeight,
+                          document.documentElement.offsetHeight);
+    min_y = header.clientHeight + 16;   // 16 is sidebar.margin_top - sticky_margin
+    max_y = limit - footer.clientHeight - sidebar.clientHeight - 16;
+}
+
+window.onscroll = function () {
+    if (window.pageYOffset >= max_y) {
+        // stick to the footer
+        sidebar.classList.add("bottom");
+        sidebar.classList.remove("sticky");
+    } else if (window.pageYOffset >= min_y) {
+        // stick to the viewport
+        sidebar.classList.add("sticky");
+        sidebar.classList.remove("bottom");
+    } else {
+        sidebar.classList.remove("sticky");
+        sidebar.classList.remove("bottom");
+    }
+}
+</script>
+    </main>
+    <footer id="footer" class="footer">
+            <p>© 2018 <a href="/about">Song Ziming</a></p>
+            <p>Generated using <a href="https://nanoc.ws/">Nanoc 4.9.3</a>.
+                Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+            <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </footer>
+</body>
+</html>
+

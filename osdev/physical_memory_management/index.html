@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>物理内存管理</title>
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header id="header" class="header">
+        <div class="wrapper-full">
+            <div class="homelink-wrapper">
+                <a href="/" class="homelink">
+                    <strong>blog.szm.me</strong>
+                </a>
+            </div>
+            <nav class="navlink-wrapper">
+                <a href="/archive" class="navlink">archive</a>
+                <!-- <a href="/about" class="navlink">about</a> -->
+                <a href="/source" class="navlink">source</a>
+            </nav>
+        </div>
+    </header>
+    <main class="wrapper-full">
+        <aside id="sidebar" class="sidebar">
+    <p>Table of Contents:</p>
+    <ul>
+    <li><p><a href="#section">物理内存管理需要关心哪些问题</a></p></li><li><p><a href="#section-1">多核问题</a></p></li>
+    </ul>
+</aside>
+
+<article class="article content">
+    <div class="article-header">
+        <h1 class="article-title">物理内存管理</h1>
+        <p class="article-meta">
+            Category: Osdev | Tags: memory os
+        </p>
+    </div>
+    <div class="article-content">
+        
+<p>物理内存管理负责分配和释放物理内存，这是 malloc/free 这些虚拟内存管理机制的基础。物理内存管理有许多种机制，这篇文章描述 <a href="https://github.com/songziming/wheel">Wheel</a> 中使用的算法。</p>
+
+<p>Wheel 大体上参考了 Linux 的 buddy allocator，将物理内存按 2 的幂组织成不同级别的 block，分配内存的时候，会将较大的 block 分割，回收内存的时候，会与相邻同级别的空闲 block 合并，形成一个更大的 block。但是与 Linux 不同的是，我们并没有使用位图来表述各个 block 的状态，而且能够不按照 block 的边界分配/释放内存。</p>
+
+<h3 id="section">物理内存管理需要关心哪些问题</h3>
+
+<p>低碎片化。随着内核与进程频繁地分配/释放物理内存，碎片化是不断加剧的，但是 allocator 应该将碎片化程度始终维持在一个能够接受的范围之内。这样，当进程申请一段内存时，系统不会因为碎片化问题导致无法找出合适的内存范围。</p>
+
+<p>速度。allocator 应该保证差不多在常数时间内实现物理内存的分配和回收，即使系统已经运行了很长时间，内存有一定程度碎片化，分配的速度也不应降低。</p>
+
+<h3 id="section-1">多核问题</h3>
+
+<p>多核。我们的系统应该能在多核 CPU 上运行，因此 allocator 需要能够处理多个 CPU 的并发访问。在物理层，我们不需要为每个 CPU 维护单独的 zone 结构，但是可以向每个 CPU 提供一段单页面大小的缓存。如果是申请/释放一个页面大小的物理内存，那么首先检查这个 CPU 的缓存，如果分配时缓存为空，或释放时缓存容量已满，就访问全局的页池。这样，就能有效降低分配/释放内存时对全局锁的占用情况。</p>
+
+    </div>
+</article>
+
+<script>
+// 计算offsetTop的时候，里面不包含 margin，因此我们这里需要把 margin 计算进来
+var sidebar;
+var min_y;
+var max_y;
+
+window.onload = function() {
+    sidebar    = document.getElementById("sidebar");
+    var header = document.getElementById("header");
+    var footer = document.getElementById("footer");
+    var limit  = Math.max(document.body.scrollHeight,
+                          document.body.offsetHeight,
+                          document.documentElement.clientHeight,
+                          document.documentElement.scrollHeight,
+                          document.documentElement.offsetHeight);
+    min_y = header.clientHeight + 16;   // 16 is sidebar.margin_top - sticky_margin
+    max_y = limit - footer.clientHeight - sidebar.clientHeight - 16;
+}
+
+window.onscroll = function () {
+    if (window.pageYOffset >= max_y) {
+        // stick to the footer
+        sidebar.classList.add("bottom");
+        sidebar.classList.remove("sticky");
+    } else if (window.pageYOffset >= min_y) {
+        // stick to the viewport
+        sidebar.classList.add("sticky");
+        sidebar.classList.remove("bottom");
+    } else {
+        sidebar.classList.remove("sticky");
+        sidebar.classList.remove("bottom");
+    }
+}
+</script>
+    </main>
+    <footer id="footer" class="footer">
+            <p>© 2018 <a href="/about">Song Ziming</a></p>
+            <p>Generated using <a href="https://nanoc.ws/">Nanoc 4.9.3</a>.
+                Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+            <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </footer>
+</body>
+</html>
+

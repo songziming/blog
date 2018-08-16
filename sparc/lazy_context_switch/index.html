@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>SPARC 任务切换优化</title>
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header id="header" class="header">
+        <div class="wrapper-full">
+            <div class="homelink-wrapper">
+                <a href="/" class="homelink">
+                    <strong>blog.szm.me</strong>
+                </a>
+            </div>
+            <nav class="navlink-wrapper">
+                <a href="/archive" class="navlink">archive</a>
+                <!-- <a href="/about" class="navlink">about</a> -->
+                <a href="/source" class="navlink">source</a>
+            </nav>
+        </div>
+    </header>
+    <main class="wrapper-full">
+        <aside id="sidebar" class="sidebar">
+    <p>Table of Contents:</p>
+    <ul>
+    <li><p><a href="#section">常规任务切换过程</a></p></li>
+    </ul>
+</aside>
+
+<article class="article content">
+    <div class="article-header">
+        <h1 class="article-title">SPARC 任务切换优化</h1>
+        <p class="article-meta">
+            Category: Sparc | Tags: os
+        </p>
+    </div>
+    <div class="article-content">
+        
+<p>在 SPARC 架构下，切换任务时需要把所有寄存器的内容保存到栈上（flush window），确保任何一个时刻，所有寄存器窗中不会同时存在多个任务的数据。</p>
+
+<p>然而，flush window 需要执行较多的内存写操作，最好能够在数据发生冲突的时候再执行保存操作。</p>
+
+<h3 id="section">常规任务切换过程</h3>
+
+<p>通常 <code class="highlighter-rouge">%wim</code> 将一个比特置为 1，也就是只有一个寄存器窗被标记为无效。<code class="highlighter-rouge">%cwp</code> 是当前正在使用的窗口的编号，<code class="highlighter-rouge">%cwp</code> 到 <code class="highlighter-rouge">%wim-1</code> 之间所有窗都包含数据，因此当一个任务即将换出的时候，我们需要把这些寄存器窗里的内容保存到栈上，同时还包括最后一个栈的 outs 寄存器。</p>
+
+<p>当所有重要的寄存器都保存到栈上之后，寄存器窗的状态应该是这样的，<code class="highlighter-rouge">1 &lt;&lt; (%cwp + 1) == %wim</code>：</p>
+
+<p><img src="" alt="figure of regwin status" /></p>
+
+
+    </div>
+</article>
+
+<script>
+// 计算offsetTop的时候，里面不包含 margin，因此我们这里需要把 margin 计算进来
+var sidebar;
+var min_y;
+var max_y;
+
+window.onload = function() {
+    sidebar    = document.getElementById("sidebar");
+    var header = document.getElementById("header");
+    var footer = document.getElementById("footer");
+    var limit  = Math.max(document.body.scrollHeight,
+                          document.body.offsetHeight,
+                          document.documentElement.clientHeight,
+                          document.documentElement.scrollHeight,
+                          document.documentElement.offsetHeight);
+    min_y = header.clientHeight + 16;   // 16 is sidebar.margin_top - sticky_margin
+    max_y = limit - footer.clientHeight - sidebar.clientHeight - 16;
+}
+
+window.onscroll = function () {
+    if (window.pageYOffset >= max_y) {
+        // stick to the footer
+        sidebar.classList.add("bottom");
+        sidebar.classList.remove("sticky");
+    } else if (window.pageYOffset >= min_y) {
+        // stick to the viewport
+        sidebar.classList.add("sticky");
+        sidebar.classList.remove("bottom");
+    } else {
+        sidebar.classList.remove("sticky");
+        sidebar.classList.remove("bottom");
+    }
+}
+</script>
+    </main>
+    <footer id="footer" class="footer">
+            <p>© 2018 <a href="/about">Song Ziming</a></p>
+            <p>Generated using <a href="https://nanoc.ws/">Nanoc 4.9.3</a>.
+                Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+            <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </footer>
+</body>
+</html>
+

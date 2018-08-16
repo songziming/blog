@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>VxWorks 代码分析</title>
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header id="header" class="header">
+        <div class="wrapper-full">
+            <div class="homelink-wrapper">
+                <a href="/" class="homelink">
+                    <strong>blog.szm.me</strong>
+                </a>
+            </div>
+            <nav class="navlink-wrapper">
+                <a href="/archive" class="navlink">archive</a>
+                <!-- <a href="/about" class="navlink">about</a> -->
+                <a href="/source" class="navlink">source</a>
+            </nav>
+        </div>
+    </header>
+    <main class="wrapper-full">
+        <aside id="sidebar" class="sidebar">
+    <p>Table of Contents:</p>
+    <ul>
+    <li><p><a href="#section">文件组织结构</a></p></li><li><p><a href="#vxworks-">VxWorks 的常规开发流程</a></p></li><li><p><a href="#section-1">对象系统</a></p></li><li><p><a href="#task">任务（Task）</a></p></li><ul><li><p><a href="#section-2">任务切换、陷阱</a></p></li><li><p><a href="#section-3">执行栈、异常栈、中断栈</a></p></li></ul><li><p><a href="#scheduling">调度（Scheduling）</a></p></li>
+    </ul>
+</aside>
+
+<article class="article content">
+    <div class="article-header">
+        <h1 class="article-title">VxWorks 代码分析</h1>
+        <p class="article-meta">
+            Category: Misc | Tags: vxworks
+        </p>
+    </div>
+    <div class="article-content">
+        
+<p>由于项目关系，有幸接触到了 VxWorks 的源代码，于是带着膜拜的心态开始阅读并分析其源代码，并将分析的结果记录在这里。我分析的版本是 VxWorks 6.7。</p>
+
+<p>国内关于 VxWorks 的资料比较少，而且网上找到的资料不少是针对 VxWorks 5.x 的，和旧版比起来，VxWorks 6.x 增加了对多核硬件（SMP）的支持，并且加入了实时进程（RTP），可以开发用户态的应用程序，代码上的区别还是很大的。</p>
+
+<h3 id="section">文件组织结构</h3>
+
+<p>假设 VxWorks 开发套件安装在 <code class="highlighter-rouge">C:\WindRiver</code>，那么 VxWorks 6.7 的源代码位于 <code class="highlighter-rouge">C:\WindRiver\vxworks-6.7\target</code>。其中有如下子目录：</p>
+
+<blockquote>
+  <ul>
+    <li><code class="highlighter-rouge">config</code>：这个目录中包括所有的 BSP
+      <ul>
+        <li><code class="highlighter-rouge">comps/VxWorks</code>：包含系统默认的组件定义文件（CDF）</li>
+        <li><code class="highlighter-rouge">comps/src</code>：这个目录下包含 configlettes，也就是一些短小的配置代码</li>
+      </ul>
+    </li>
+    <li><code class="highlighter-rouge">h</code>：VxWorks 内核头文件
+      <ul>
+        <li><code class="highlighter-rouge">private</code>：私有头文件，只有 <code class="highlighter-rouge">src</code> 中的代码能够访问</li>
+        <li><code class="highlighter-rouge">make</code>：Makefile 片段文件，这些文件会被各个工程的 Makefile 中引用</li>
+        <li><code class="highlighter-rouge">tool</code>：包含与工具链相关的 Makefile 片段，以及链接脚本</li>
+      </ul>
+    </li>
+    <li><code class="highlighter-rouge">src</code>：VxWorks 内核的源文件</li>
+    <li><code class="highlighter-rouge">lib</code>：这个目录保存编译生成的内核库（单核版本）</li>
+    <li><code class="highlighter-rouge">lib_smp</code>：这个目录保存编译生成的内核库（多核版本）</li>
+    <li><code class="highlighter-rouge">usr</code>：所有用户态相关的文件都放在这里（RTP）
+      <ul>
+        <li><code class="highlighter-rouge">h</code>：用户态代码使用的头文件</li>
+        <li><code class="highlighter-rouge">src</code>：用户层库的源文件</li>
+        <li><code class="highlighter-rouge">lib</code>：保存编译生成的用户库</li>
+      </ul>
+    </li>
+  </ul>
+</blockquote>
+
+<p>VxWorks内核的源代码就放在 <code class="highlighter-rouge">src</code> 目录下，这个目录下面又有许多子目录，比较重要的两个是 <code class="highlighter-rouge">wind</code> 和 <code class="highlighter-rouge">os</code>。<code class="highlighter-rouge">wind</code> 目录下包含任务管理相关代码，<code class="highlighter-rouge">os</code> 下则包含对象系统、内存管理等内容。</p>
+
+<p>VxWorks 是模块化设计的，代码也是按照模块化组织的。VxWorks 把模块划分得非常精细，一个典型的模块就包括一个 C 文件和一个头文件。例如内存管理模块 memPartLib，相关代码包括 <code class="highlighter-rouge">src/os/mm/memPartLib.c</code>、<code class="highlighter-rouge">h/memPartLib.h</code>、<code class="highlighter-rouge">h/private/memPartLibP.h</code>，其中 <code class="highlighter-rouge">h/private</code> 中的头文件是私有头文件，风河不保证私有头文件中的函数接口发生改变，因此开发者为了确保与后续版本的 VxWorks 兼容，在开发中应该使用 VxWorks 的公开 API。</p>
+
+<p>VxWorks 将功能相关的模块放在同一个目录下，每个目录下还有一个 <code class="highlighter-rouge">Makefile</code> 文件，这个文件用来指导 VxWorks 内核的编译过程。需要说明的是，编译 VxWorks 内核生成的不是完整 OS，而是<strong>内核库</strong>，要创建一个完整的 OS，需要得到内核库之后创建 VIP 项目，下一节会有详细说明。</p>
+
+<h3 id="vxworks-">VxWorks 的常规开发流程</h3>
+
+<p>平时我们讲 Linux 开发，通常意思是在 Linux 系统之上进行开发应用程序，同时开发出来的应用程序也运行在 Linux 系统上。然而 VxWorks 是一个嵌入式系统，我们不方便在 VxWorks 中进行开发，一般而言，VxWorks 开发工作是在一个运行着 Linux 或 Windows 的开发机上进行的，在开发机上编译之后，再把生成的东西放在开发板上运行。而且编译出来的也不是应用程序，而是一个系统镜像（system image），这个系统镜像可以直接加载到开发版上，或者烧录到设备 ROM 中。</p>
+
+<p>这种系统镜像类型的项目叫做 VIP（VxWorks Image Project），它产生的输出就是一个完整的 OS。而且 VxWorks 的可定制成都很高，开发者可以选择这个 OS 中需要哪些功能，不需要那些功能，还有相关配置参数的取值。开发工具会根据用户的配置，生成一个定制的系统镜像。</p>
+
+<p>VIP 项目的构建过程其实非常简单，就是把相关的静态库链接在一起。由于静态库实际上就是若干目标文件的打包，因此静态库链接就相当于把一对目标文件链接在一起。根据 VIP 项目中的用户配置，开发工具可以选择链接哪些目标文件，不链接哪些目标文件，这就实现了系统功能的定制。（当然，VIP 构建过程肯定不是只有链接，BSP代码、开发者编写的代码、根据 VIP 配置自动生成的代码，这些都需要进行编译，并于内核库共同链接。）</p>
+
+<p>因此，构建 VIP 项目之前，需要保证所需静态库存在，这些静态库就是<strong>内核库</strong>，通过编译 VxWorks 内核源代码生成。编译内核库有两种方式：</p>
+
+<ul>
+  <li>通过命令行，在 <code class="highlighter-rouge">src</code> 目录下执行 <code class="highlighter-rouge">make CPU=PENTIUM TOOL=gnu VXBUILD=SMP</code> 命令来编译（当然，需要根据具体的目标平台、编译器和多核选项来调整构建参数）。这种方式生成的静态库会保存在 <code class="highlighter-rouge">lib</code> 或 <code class="highlighter-rouge">lib_smp</code> 目录下（取决于单核还是多核）。</li>
+  <li>通过集成开发环境 Workbench，创建 VSB（VxWorks Source Build）项目，构建 VSB 项目来编译内核库。这样生成的内核库会位于 VSB 项目目录中。</li>
+</ul>
+
+<p>风河之所以将编译 VxWorks 的过程分为两步，一个原因是这可以加快 VIP 项目的构建速度，另一个原因则是用户可以在没有源代码的情况下使用 VxWorks 开发。用户可以创建 BSP 项目开发自己的版级支持包，也可以创建 VIP 项目，编写自己的内核应用程序，但是系统核心部分的代码是不变的。因此首先把系统核心部分编译成静态链接库，这样在构建 BSP 项目时就可以直接链接已经生成的库。</p>
+
+<hr />
+
+<p>接下来对 VxWorks 代码进行分析。</p>
+
+<h3 id="section-1">对象系统</h3>
+
+<p>尽管 VxWorks 主要使用 C 语言开发，但是仍然大量应用了面向对象的思想。</p>
+
+<hr />
+
+<h3 id="task">任务（Task）</h3>
+
+<p>任务可谓是 VxWorks 的核心概念，类似于 Linux 系统中的内核线程，是系统中最基本的独立执行单元。任务运行在特权模式（Supervisor Mode），相互之间没有地址空间隔离，整个系统共用同一套虚拟地址空间（暂时不考虑 RTP 的情况）。由于任务直接运行在特权模式，可以直接用函数调用的方法使用 VxWorks API，不需要系统调用。VxWorks 支持多任务，而且是抢占式多任务，因此一个任务不需要主动让出 CPU，系统会在必要的时刻强制停止当前任务的执行，而切换到一个新的任务。</p>
+
+<h4 id="section-2">任务切换、陷阱</h4>
+
+<p>系统支持多任务，那就需要实现任务切换。任务切换就是从一个任务切换到另一个任务的过程，这个过程往往是借助 CPU 的陷阱机制实现的。</p>
+
+<p>陷阱（Trap）在不同体系架构下可能有不同的名字，例如 x86 下的中断和异常都可以称作陷阱。所谓陷阱，是一种异步的事件，当陷阱发生的时候，CPU 可以暂停目前正在运行的代码，保存状态，跳转到陷阱处理程序执行，完成之后恢复状态，继续执行之前被打断的程序。具体来说就是：</p>
+
+<ol>
+  <li>陷阱发生，CPU 将指令指针（PC）、栈指针（SP）的值保存在栈上（保存状态，这一步由 CPU 自动进行）</li>
+  <li>根据陷阱的向量号，跳转到陷阱处理程序的入口点开始执行（执行 ISR，仍然 CPU 自动进行）</li>
+  <li>ISR 执行完毕之后，软件执行陷阱返回指令，CPU 从栈上恢复出 PC 和 SP 的值（恢复状态）</li>
+  <li>继续执行之前被打断的程序</li>
+</ol>
+
+<p>VxWorks 区分了两种不同的陷阱，即中断和异常。二者的主要区别在于来源不同，中断的来源往往外部设备，例如时钟、键盘等；异常则是 CPU 内部产生的，例如除零、违反特权级、分页异常等。中断和异常的处理程序都有自己的栈，当陷阱发生时，首先保存状态到当前栈，然后切换到相应的中断栈或异常栈，执行处理函数，最后切换回执行栈并恢复状态。</p>
+
+<p>由于陷阱前和陷阱后，PC 与 SP 的取值完全相同，因此完全感觉不到任何中断。但是有一点，保存 PC/SP 和恢复 PC/SP 都是通过栈进行的，如果我们在处理陷阱的过程中改变了栈，就会导致陷阱返回的时候，恢复的不是陷阱之前被中断的程序，这就是任务切换的基本思路。</p>
+
+<h4 id="section-3">执行栈、异常栈、中断栈</h4>
+
+<p>如果了解一些操作系统的概念，应该会知道，每个线程都拥有自己的栈。但是在 VxWorks 中，存在着三种栈：</p>
+
+<ul>
+  <li>执行栈（Execution Stack），表示用于执行正常代码，进行函数调用、保存局部变量的栈。每个任务都拥有自己专属的执行栈。</li>
+  <li>异常栈（Exception Stack），当异常发生的时候，ISR 会切换到这个栈，并执行相应的执行。理论上，异常处理程序完全可以在执行栈上运行，但是 VxWorks 还是给异常单独分配了一个栈。异常栈也是每个任务一份，因此当一个任务正在执行异常处理代码的时候，也是可以进行任务切换的。</li>
+  <li>中断栈（Interrupt Stack），当中断发生的时候，ISR 会切换到这个栈，并执行相应的中断处理函数。中断栈并不是每个任务一份，而是每个 CPU 一份，因此中断上下文不属于任何任务。每次从中断返回的时候，有可能进行调度和任务切换。</li>
+</ul>
+
+<p>每个任务都拥有自己的执行栈和异常栈，当一个任务处于运行状态时，它有可能正在运行栈上执行业务代码，也有可能在异常栈上处理异常，这两种状态都属于运行状态。运行状态下，如果产生中断，任务的当前上下文（PC、SP 以及其他寄存器）会被保存到当前栈（运行栈或者异常栈）上，切换到中断栈，执行中断处理代码。</p>
+
+<p>在中断即将返回的时候，VxWorks 会检查目前是否需要执行调度和任务切换（RoundRobin 情况）。例如中断之前正在运行任务 A，中断之后需要切换到任务 B，那么我们在完成中断返回前，并不会从中断栈切换回任务 A 的运行/异常栈，而是切换到任务 B 的运行/异常栈。</p>
+
+<h3 id="scheduling">调度（Scheduling）</h3>
+
+<p>调度算法</p>
+
+    </div>
+</article>
+
+<script>
+// 计算offsetTop的时候，里面不包含 margin，因此我们这里需要把 margin 计算进来
+var sidebar;
+var min_y;
+var max_y;
+
+window.onload = function() {
+    sidebar    = document.getElementById("sidebar");
+    var header = document.getElementById("header");
+    var footer = document.getElementById("footer");
+    var limit  = Math.max(document.body.scrollHeight,
+                          document.body.offsetHeight,
+                          document.documentElement.clientHeight,
+                          document.documentElement.scrollHeight,
+                          document.documentElement.offsetHeight);
+    min_y = header.clientHeight + 16;   // 16 is sidebar.margin_top - sticky_margin
+    max_y = limit - footer.clientHeight - sidebar.clientHeight - 16;
+}
+
+window.onscroll = function () {
+    if (window.pageYOffset >= max_y) {
+        // stick to the footer
+        sidebar.classList.add("bottom");
+        sidebar.classList.remove("sticky");
+    } else if (window.pageYOffset >= min_y) {
+        // stick to the viewport
+        sidebar.classList.add("sticky");
+        sidebar.classList.remove("bottom");
+    } else {
+        sidebar.classList.remove("sticky");
+        sidebar.classList.remove("bottom");
+    }
+}
+</script>
+    </main>
+    <footer id="footer" class="footer">
+            <p>© 2018 <a href="/about">Song Ziming</a></p>
+            <p>Generated using <a href="https://nanoc.ws/">Nanoc 4.9.3</a>.
+                Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+            <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </footer>
+</body>
+</html>
+

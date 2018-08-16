@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title></title>
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header id="header" class="header">
+        <div class="wrapper-full">
+            <div class="homelink-wrapper">
+                <a href="/" class="homelink">
+                    <strong>blog.szm.me</strong>
+                </a>
+            </div>
+            <nav class="navlink-wrapper">
+                <a href="/archive" class="navlink">archive</a>
+                <!-- <a href="/about" class="navlink">about</a> -->
+                <a href="/source" class="navlink">source</a>
+            </nav>
+        </div>
+    </header>
+    <main class="wrapper-full">
+        <!-- <div class="wrapper-full"> -->
+
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/osdev/spinlock/">自旋锁</a>
+        </h1>
+        <p class="article-meta">
+            Category: Osdev | Tags: 
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+
+  参考资料：
+
+  
+    浅谈进程同步解决方案（1）：自旋锁
+  
+
+
+自旋锁是最基础的同步机制，也是系统开发过程中最先实现的锁。然而即使是这种最简单的锁，仍然有一定的复杂度。
+
+不加锁会有哪些问题
+
+首先考虑单核硬件上的情况。现代操作系统一般都</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/vxworks_source_analysis/">VxWorks 代码分析</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: vxworks
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+由于项目关系，有幸接触到了 VxWorks 的源代码，于是带着膜拜的心态开始阅读并分析其源代码，并将分析的结果记录在这里。我分析的版本是 VxWorks 6.7。
+
+国内关于 VxWorks 的资料比较少，而且网上找到的资料不少是针对 VxWorks 5</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/use_xdotool_to_simulate_user_input/">使用 xdotool 模拟用户交互</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 工具 linux
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+命令行下，对于一些常用而重复的命令，可以使用脚本来自动化；而对于图形界面程序，则可以使用 xdotool 来模拟用户的鼠标键盘输入。xdotool 是一个命令行工具，用户可以通过命令或者脚本模拟鼠标和键盘的动作，使用命令行控制图形界面。
+
+安装
+
+通常，</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/the_starting_process_of_a_computer/">计算机的启动过程</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 底层
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+计算机的启动，实际上是一个很复杂的过程。本文将会介绍启动过程的每个步骤、每个细节。本文的叙述主要针对使用 X86 系列 CPU 的 IBM-PC 及其兼容机器，目前主流的台式机和笔记本都是这种架构。另外，操作系统方面，本文主要针对装有 GRUB 引导器的</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/memory/">内存结构</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 底层
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+
+  参考资料：
+
+  
+    圖解RAM結構與原理，系統記憶體的Channel、Chip與Bank
+    What every programmer should know about memory, Part 1
+  
+
+
+内存地址到内存条
+
+应</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/manage_dependencies_with_gcc_and_make/">用 GCC 和 Makefile 自动处理依赖关系</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 开发 linux
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+Make 是一个非常好的工具，但是 Makefile 的编写却不是很方便，尤其是编译依赖关系的确定上。
+
+假设一个 C/C++ 项目有许多源文件、许多头文件，每个源文件里都引用了一些头文件。这时如果修改了其中的一个头文件，为了加快工程编译速度，应该只有引</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/hook_library_functions_using_ld_preload/">使用 LD_PRELOAD 拦截库函数调用</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 开发 linux
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+LD_PRELOAD 是 Linux 下一个很有意思的环境变量，通过这个变量，可以在运行程序时强制加载某个动态库，而且是最先加载。通过 LD_PRELOAD 可以非常方便地拦截库函数的调用，而且不需要修改可执行程序。
+
+拦截 strlen
+
+下面通过一个</p>
+    </div>
+</section>
+
+<section class="article article-entry">
+    <div class="article-header">
+        <h1 class="article-title">
+            <a href="/misc/fcitx_with_qt5/">让 Qt5 支持 fcitx</a>
+        </h1>
+        <p class="article-meta">
+            Category: Misc | Tags: 开发 qt
+        </p>
+    </div>
+    <div class="article-content">
+        <p class="article-excerpt">
+Qt5 有一个让人头疼的问题，就是 Linux 下的中文输入法一直有问题。这篇文章给出了一种解决办法，通过复制文件实现，然而发现 Qt 版本 5.4 中此法并不能用，只要尝试启动程序就会段错误。
+
+fcitx-qt5
+
+在 Github 上有一个 fci</p>
+    </div>
+</section>
+
+
+<!-- </div> -->
+    </main>
+    <footer id="footer" class="footer">
+            <p>© 2018 <a href="/about">Song Ziming</a></p>
+            <p>Generated using <a href="https://nanoc.ws/">Nanoc 4.9.3</a>.
+                Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
+            <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
+    </footer>
+</body>
+</html>
+
