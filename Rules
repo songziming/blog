@@ -4,23 +4,27 @@ layout "/**/*", :erb
 
 compile "/index.html" do
     filter :erb
-    layout "/page.*"
+    layout "/base.*"
     write  "/index.html"
 end
 
 compile "/*.html" do
     filter :erb
-    layout "/page.*"
+    layout "/base.*"
     write  item.identifier.without_ext + "/index.html"
 end
 
 compile "/posts/**/*.md" do
-    filter :kramdown, input: 'GFM', syntax_highlighter: 'rouge'
+    filter :kramdown, input: 'GFM', syntax_highlighter: 'rouge', auto_ids: true
     layout "/post.*"
-    layout "/page.*"
+    layout "/base.*"
     write  item.identifier.without_ext.sub(/^\/posts/, "") + "/index.html"
 end
 
 compile "/**/*" do
+    write  item.identifier.to_s
+end
+
+compile "/.nojekyll" do
     write  item.identifier.to_s
 end

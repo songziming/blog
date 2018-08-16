@@ -74,18 +74,6 @@ a {
 }
 
 /*******************************************************************************
- * layout
- */
-
-.wrapper-full {
-    display: block;
-    overflow: auto;
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-/*******************************************************************************
  * page header
  */
 
@@ -181,16 +169,83 @@ a {
 }
 
 /*******************************************************************************
+ * side bar and main content
+ */
+
+ .wrapper-full {
+    display: block;
+    position: relative;
+    overflow: auto;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.sidebar {
+    width: 240px;
+    float: left;
+    margin: 32px 0 15px;
+    padding: 5px 5px 5px 0;
+    border-right: 1px solid #ddd;
+}
+
+.sticky {
+    position: fixed;
+    top: -16px;
+    /* margin top is 32px, leave 16px, so the sticky threshold is 16px.
+       the JS code in post.html must be compliant to it. */
+    /* 如果目录过长，滚动到页面底端的时候，会与 footer 重叠，设置 z-index 之后，会被 footer 挡住 */
+}
+
+.bottom {
+    position: absolute;
+    bottom: 0;
+}
+
+.content {
+    width: calc(100% - 250px);
+    float: right;
+}
+
+@media only screen and (max-width: 600px) {
+    .sidebar {
+        display: none;
+    }
+    .content {
+        width: 100%;
+    }
+}
+
+.sidebar ul {
+    list-style: none;
+    padding-left: 10px;
+}
+
+.sidebar li p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar li p ::before {
+    content: "» ";
+}
+
+/*******************************************************************************
  * article text
  */
 
 .article {
     overflow: hidden;
     padding: 15px 0;
+    text-align: justify;
+}
+
+.article-entry {
     border-bottom: 1px solid #ddd;
 }
 
-.article:last-child {
+.article-entry:last-child {
     border-bottom: 0px;
 }
 

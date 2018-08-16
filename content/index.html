@@ -1,5 +1,7 @@
+<!-- <div class="wrapper-full"> -->
+
 <% sorted_articles.each do |post| %>
-<section class="article">
+<section class="article article-entry">
     <div class="article-header">
         <h1 class="article-title">
             <a href="<%= post.path %>"><%= post[:title] %></a>
@@ -13,3 +15,5 @@
     </div>
 </section>
 <% end %>
+
+<!-- </div> -->

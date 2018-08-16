@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-    <header class="header">
+    <header id="header" class="header">
         <div class="wrapper-full">
             <div class="homelink-wrapper">
                 <a href="/" class="homelink">
@@ -25,18 +25,14 @@
             </nav>
         </div>
     </header>
-    <main class="mainbody">
-        <div class="wrapper-full">
-            <%= yield %>
-        </div>
+    <main class="wrapper-full">
+        <%= yield %>
     </main>
-    <footer class="footer">
-        <!-- <div class="wrapper"> -->
+    <footer id="footer" class="footer">
             <p>© <%= Date.today.year %> <a href="/about"><%= @config[:author] %></a></p>
             <p>Generated using <a href="https://nanoc.ws/">Nanoc <%= Nanoc::VERSION %></a>.
                 Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
             <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
-        <!-- </div> -->
     </footer>
 </body>
 </html>

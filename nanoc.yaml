@@ -1,19 +1,20 @@
 title:  blog.szm.me
 author: Song Ziming
 
-text_extentions: [ "html", "css", "js", "md" ]
+text_extentions: [ "html", "css", "js", "md", "nojekyll" ]
 
 prune:
     auto_prune: true
-    exclude: [ ".git" ]
+    exclude: [ ".git", ".nojekyll" ]
 
 data_sources:
     -   type: filesystem
         encoding: utf-8
+        extra_files: [ ".nojekyll" ]
 
 deploy:
     default:
         kind: git
         remote: https://github.com/songziming/blog.git
-        branch: prod
+        branch: gh-pages
         forced: true
