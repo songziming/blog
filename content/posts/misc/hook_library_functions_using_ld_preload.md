@@ -1,14 +1,14 @@
 ---
 title: "使用 LD_PRELOAD 拦截库函数调用"
 kind: "article"
-tags: ["开发", "Linux"]
+tags: ["hook", "Linux"]
 ---
 
 `LD_PRELOAD` 是 Linux 下一个很有意思的环境变量，通过这个变量，可以在运行程序时强制加载某个动态库，而且是最先加载。通过 `LD_PRELOAD` 可以非常方便地拦截库函数的调用，而且不需要修改可执行程序。
 
-### 拦截 `strlen`
+### 例子：拦截 strlen
 
-下面通过一个例子来演示 `LD_PRELOAD` 拦截 `strlen` 的方法。首先是一段测试代码：
+下面通过一个例子来演示使用 `LD_PRELOAD` 拦截 `strlen` 的方法。首先是一段测试代码：
 
 ``` c
 #include <stdio.h>

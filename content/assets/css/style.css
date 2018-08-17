@@ -160,15 +160,6 @@ a {
 }
 
 /*******************************************************************************
- * main body
- */
-
-.mainbody {
-    text-align: justify;
-    padding: 16px 0;
-}
-
-/*******************************************************************************
  * side bar and main content
  */
 
@@ -182,10 +173,10 @@ a {
 }
 
 .sidebar {
-    width: 240px;
+    width: 245px;
     float: left;
     margin: 32px 0 15px;
-    padding: 5px 5px 5px 0;
+    padding: 5px 5px 5px 5px;
     border-right: 1px solid #ddd;
 }
 
@@ -203,7 +194,7 @@ a {
 }
 
 .content {
-    width: calc(100% - 250px);
+    width: calc(100% - 260px);
     float: right;
 }
 
@@ -310,6 +301,16 @@ pre {
     margin: 10px 0;
     overflow: hidden;
     margin: 0;
+}
+
+/* definition list */
+
+dl dt {
+    font-weight: bold;
+}
+
+dl dd {
+    margin-left: 2em;
 }
 
 /* .gutter {

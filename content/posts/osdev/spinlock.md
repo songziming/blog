@@ -1,8 +1,7 @@
 ---
 title: "自旋锁"
 kind: "article"
-tags: []
-toc: true
+tags: ["spinlock", "synchronization", "os"]
 ---
 
 > 参考资料：

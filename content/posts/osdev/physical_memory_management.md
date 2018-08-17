@@ -1,7 +1,7 @@
 ---
 title: "物理内存管理"
 # kind: "article"
-tags: ["memory", "os"]
+tags: ["memory", "page frame allocation", "os"]
 ---
 
 物理内存管理负责分配和释放物理内存，这是 malloc/free 这些虚拟内存管理机制的基础。物理内存管理有许多种机制，这篇文章描述 [Wheel](https://github.com/songziming/wheel) 中使用的算法。

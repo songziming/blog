@@ -1,7 +1,7 @@
 ---
 title: "用 GCC 和 Makefile 自动处理依赖关系"
 kind: "article"
-tags: ["开发", "Linux"]
+tags: ["gcc", "makefile", "Linux"]
 ---
 
 Make 是一个非常好的工具，但是 Makefile 的编写却不是很方便，尤其是编译依赖关系的确定上。

@@ -1,13 +1,11 @@
 #!/usr/bin/env ruby
 
-# require "nanoc/toolbox"
 require 'nokogiri'
 
 use_helper Nanoc::Helpers::Blogging
 use_helper Nanoc::Helpers::Rendering
 # use_helper Nanoc::Helpers::Tagging
 # use_helper Nanoc::Helpers::LinkTo
-# use_helper Nanoc::Toolbox::Helpers::Navigation
 
 # 我们定义了自己的 helper，用来生成文章的分类和目录
 # 文章都放在 posts 目录下，如果还有子目录，那子目录的名称就是文章分类

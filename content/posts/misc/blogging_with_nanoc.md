@@ -1,62 +1,77 @@
 ---
 title: "使用 Nanoc 构建静态网站"
 # kind: "article"
-tags: []
+tags: ["nanoc", "blog"]
 ---
 
-如果把众多的静态网站生成工具比作编程语言的话，那么我感觉 Nanoc 就应该属于 C 语言。Jekyll、Hexo 等工具往往专门用于生成博客，Nanoc 与此不同，只提供最基本的功能，但应用范围也非常广泛。
+算起来，这应该是我第二次折腾 Nanoc 了。上一次使用 Nanoc，就给我留下了很好的印象，虽然核心功能不多，但是构建过程非常直接，而且可定制程度非常高。印象中，上一次使用 Nanoc，甚至编写了一个 helper，实现 Pandoc 渲染和内嵌 TikZ 绘图。但是由于 Ruby 的环境不方便在 Windows 下面运行，所以就放弃了。
 
-静态网站的生成过程实际上就是对 markdown、liquid 等语言进行翻译，与资源文件一起生成网站资源的过程，既然只是一个编译过程，显然应用范围不仅限于博客。
+不过这回有了 WSL，环境就不再是问题，于是重新捡起 Nanoc。
 
-在一个 Nanoc 项目下，所有的输入都放在 `content` 目录下，生成的网站则放在 `output` 目录下。生成过程的规则由 ruby 文件 `Rules` 描述。
+### 基本结构
 
-### 关于 Ruby
+Nanoc 最大的特点就是简单，同时还有很强的扩展性。`content` 目录下的所有文件都是输入，每个文件都称作一个 item。构建静态网站的过程，就是对所有的 item 执行对应的处理流程。各个 item 的构建规则由 `Rules` 文件描述，输出的文件就放在 `output` 目录下。
 
-个人对 ruby 并不了解，使用得也不熟练，这也是曾经一度使用 Hexo 的原因。然而 hexo 的问题太多，即使能够正常运行，也总是有几个 warning，影响使用感受。nanoc 除了使用 ruby 语言之外，其他方面感觉很成熟。
+Nanoc 不区分源文件的类型，无论 html、markdown、css 还是图片，只要放在 `content` 里面，就属于 item。因此在规则文件 `Rules` 中，我们可以根据 item 的文件名来分类，进行执行不同的编译规则。从源文件到最终的静态网站，构建过程的每个步骤都是清晰明确的。
 
-### post local assets
+### 自动生成目录
 
-涉及到图片这类静态资源时，往往是把图片放在统一的资源文件夹下，然后在 markdown 文件中使用绝对路径进行引用。
+为了方便浏览文章，可以在渲染 markdown 的时候，自动生成一个目录，显示在页面的左侧，用户点击目录可以迅速定位到目标位置。
 
-其实还有一种办法，让每个文章都有自己的私有资源目录。具体来说，就是创建一个与文件名同名的目录（没有后缀），然后将资源文件放在这个目录下。markdown 文件中使用相对目录访问。
+如果要生成目录，首先要启用标题的 ID，这样我们才能生成链接，指向对应的标题。在 Kramdown 里面，可以通过指定参数 `auto_ids=true`，让生成的每一个标题都带有 id 属性。
 
-由于在生成网站的时候，每个 markdown 文件的地址自动变为 `/file_name/index.html`，因此与主文件名同名的文件夹就是翻译之后 HTML 文件所在的位置，自然也可以放入其他的资源文件。
+生成了标题 ID 之后，在 markdown 文件里面，就可以用 `{:toc}` 指定 kramdown 生成这篇文章的目录，目录就放在标记的位置：
 
-### table of contents
-
-为了方便浏览文章，可以让 kramdown 生成一个目录，显示在页面的左侧，用户点击目录可以迅速定位到目标位置。所以说，markdown 生成的每个标题都应该有一个 ID。
-
-在 markdown 文件里面，可以指定 `{:toc}` 让 kramdown 生成这篇文章的目录，但如果这样的话，目录会以一个列表的形式放在文章里面，如果我们希望显示在页面的左侧，就无法实现。
-
-如果要生成目录，首先要启用标题的ID，在 Kramdown 里面，可以通过参数 `auto_ids=true` 来实现。但 Kramdown 只认识英文字符，因此只会将标题里面的英文部分作为 ID。不知道有没有办法，让生成的标题 ID 里面包含包含中文，例如转化成拼音。
-
-~~~
+~~~ md
 * Table of Contents
 {:toc}
 ~~~
 
 标记 `{:toc}` 的前面必须有一个列表，最终生成的 HTML 里面，前面那一行并不会出现。
 
-这种方式的目录只能作为正文内容的一部分，放在文章的开头，没办法专门从文章内容里面剥离，显示在另外的部分。
+但是，这种方式生成的目录只能作为正文内容的一部分，放在文章的开头，没办法专门从文章内容里面剥离，显示在另外的部分。毕竟 Kramdown 作为一个解析器，根本的工作就是将 markdown 转换为 html，说白了就是一个输入文件到一个输出文件，不能产生两个输出文件。
 
-毕竟 Kramdown 作为一个解析器，根本的工作就是将 markdown 转换为 html，一个输入文件到一个输出文件。如果我们想把这个目录部分从文章主体里面拿走，肯定不容易。
+### 自定义 helper 生成目录
 
-##### custom helper
+既然 Kramdown 自带的功能不满足我们要求，那就利用 Nanoc 灵活的扩展能力自己开发。
 
-但是 Nanoc 支持非常灵活的 helper，我们可以自己定义一个 helper，自己生成一套目录。
+生成目录其实非常简单，将翻译之后的 HTML 片段进行分析，提取里面所有的标题（`h1` 到 `h6`），获取每一个标题的内容和 id，将内容重新组合为列表项。
 
-在博客文章页面的布局模板里面，文章正文内容是通过 `<%= yield %>` 生成的，函数 `yield()` 返回一个字符串，就是渲染之后的 HTML 内容。那么我们完全可以将 yield 的返回结果再进行一步处理。
+~~~
+Input:  <h3 id="section">My Header</h3>
+Output: <a href="#section">My Header</a>
+~~~
 
-使用 Nokogiri 解析生成的 HTML 内容，提取里面带有 id 的标题，然后将其转换为列表项。
+使用 Ruby 语言解析 HTML，可以用到 Nokogiri，代码如下：
 
-但是仅仅这样做的话，得到的列表项只能是单级的，如果文章定义了许多不同级别的标题，则不会体现在目录里面。
+~~~ ruby
+doc = Nokogiri::HTML::DocumentFragment.parse(html)
+sel = (1..6).map(&-> (x) { "h#{x}[@id]" }).join("|")
+doc.xpath(sel).map { |h|
+    "<li><p><a href=\"##{h[:id]}\">#{h.children}</a></p></li>"
+}.join
+~~~
 
-# My Friends
+这几行代码，就可以选出所有标题，并生成一组列表项，前后再加上 `<ul>` 和 `</ul>`，就是一个完整的列表。
 
-Kang Qiao: http://kangdandan.com
+当然，这样的列表丢失了标题的级别，显示出来都成了平级的。最终的代码可以参考 Github。
 
-<li><a href="http://wcqblog.github.io/">荒原</a></li>	
-<li><a href="http://www.renfei.org/blog/">Renfei Song</a></li>	
-<li><a href="http://wanzy.me/blog/">羽民</a></li>	
-<li><a href="http://timmyxu.me">峯少</a></li>	
-<li><a href="http://heavenduke.com">渣诚</a></li>
+### sticky sidebar
+
+我们将文章的目录显示在页面的左侧，但是，如果让左侧的目录随着正文一起滚动，那么如果滚到文章后面，目录就会完全看不到，如果用户希望使用目录进行导航，就还要回到页面的开头。显然这非常不方便，最好能让目录一直显示在页面的左侧。
+
+网上查了一番，发现有一个 CSS 属性 `position: sticky`，似乎能解决我这个需求。然而试验了之后，发现这个属性的问题非常多。它只会和父元素的边界进行比较，从而决定自己应该是 relative 还是 fixed，但在我们的页面中，左侧的目录是放在一个容器 div 内部的，这就导致 `position: sticky` 属性没有效果。
+
+最后，还是使用最传统的 JS 方法。所谓 sticky sidebar，就是一开始目录随着页面一起滚动，当目录就要碰到 viewport 顶端的时候，变为 fixed 模式，固定在 viewport 中当前的位置。当滚动到页面底端，又要和 footer 碰撞的时候，再变为 absolute 布局，紧贴外层 div 的下边界。
+
+所以，主要的逻辑就是计算出两个状态转换的关键节点，然后不断检查页面滚动的事件，如果发现越过了这两个节点，那就通过修改 class 属性，调整侧边目录的显示效果。
+
+### My Friends
+
+<!-- - [康乔](http://kangdandan.com) -->
+
+- [荒原](http://wcqblog.github.io)
+- [Renfei Song](http://www.renfei.org/blog)
+- [羽民](http://wanzy.me/blog)
+- [峯少](http://timmyxu.me)
+- [渣诚](http://heavenduke.com)

@@ -1,7 +1,7 @@
 ---
 title: "内存结构"
 kind: "article"
-tags: ["底层"]
+tags: ["memory"]
 ---
 
 > 参考资料：
