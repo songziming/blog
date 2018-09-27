@@ -34,20 +34,22 @@ window.onload = function() {
     min_y = header.clientHeight + 16;   // 16 is sidebar.margin_top - sticky_margin
     max_y = limit - footer.clientHeight - sidebar.clientHeight - 16;
 
-    window.onscroll = function() {
-        if (window.pageYOffset >= max_y) {
-            // stick to the footer
-            sidebar.classList.add("bottom");
-            sidebar.classList.remove("sticky");
-        } else if (window.pageYOffset >= min_y) {
-            // stick to the viewport
-            sidebar.classList.add("sticky");
-            sidebar.classList.remove("bottom");
-        } else {
-            // stick to nothing
-            sidebar.classList.remove("sticky");
-            sidebar.classList.remove("bottom");
-        }
-    };
+    if (max_y > min_y) {
+        window.onscroll = function() {
+            if (window.pageYOffset >= max_y) {
+                // stick to the footer
+                sidebar.classList.add("bottom");
+                sidebar.classList.remove("sticky");
+            } else if (window.pageYOffset >= min_y) {
+                // stick to the viewport
+                sidebar.classList.add("sticky");
+                sidebar.classList.remove("bottom");
+            } else {
+                // stick to nothing
+                sidebar.classList.remove("sticky");
+                sidebar.classList.remove("bottom");
+            }
+        };
+    }
 };
 </script>
