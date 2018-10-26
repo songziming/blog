@@ -1,15 +1,14 @@
-<% sorted_articles.each do |post| %>
+<% all_notes %>
+
+<% all_notes.each do |note| %>
 <section class="article article-entry">
     <div class="article-header">
         <h1 class="article-title">
-            <a href="<%= post.path %>"><%= post[:title] %></a>
+            <a href="<%= note[:path] %>"><%= note[:titles][-1] %></a>
         </h1>
-        <p class="article-meta">
-            Category: <%= categories(post) %> | Tags: <%= tags(post) %>
-        </p>
     </div>
     <div class="article-content">
-        <p class="article-excerpt"><%= excerpt(post) %></p>
+        <p class="article-excerpt"><%= note[:digest] %></p>
     </div>
 </section>
 <% end %>
