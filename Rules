@@ -3,10 +3,11 @@
 layout '/**/*', :erb
 
 compile '/notes/**/*.md' do
+    folder = item.identifier.to_s.match(/^\/notes\/(.*)\.md$/)[1].split('/')
+    title  = folder[-1].match(/^(\d+)-(.*)$/)[2]
+    number = folder.map { |s| s.match(/^(\d+)-(.*)$/)[1] }
     filter :pandoc, from: 'markdown', to: 'html5', args: ['mathjax']
-    layout '/note.*'
-    match  = item.identifier.to_s.match(/^\/notes\/(.*)\.md$/)
-    number = match[1].split('/').map { |s| s.match(/^(\d+)-(.*)$/)[1] }
+    layout '/note.*', locals: { title: title }
     write "/#{number.join('/')}_#{item[:permalink]}.html"
 end
 
@@ -18,7 +19,7 @@ end
 
 compile '/*.html' do
     filter :erb
-    layout '/base.*'
+    layout '/base.*', locals: { title: 'ZMKB' }
     write item.identifier.to_s
 end
 
