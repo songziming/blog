@@ -6,34 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/asset/css/normalize.css">
-    <link rel="stylesheet" href="/asset/css/solarized.css">
     <link rel="stylesheet" href="/asset/css/style.css">
 </head>
 <body>
     <header id="header" class="header">
-        <div class="wrapper-full">
+        <div class="wrap-page">
             <div class="homelink-wrapper">
                 <a href="/" class="homelink">
                     <strong><%= @config[:title] %></strong>
                 </a>
             </div>
-            <nav class="navlink-wrapper">
-                <a href="/archive" class="navlink">archive</a>
-                <!-- <a href="/about" class="navlink">about</a> -->
-                <a href="/source" class="navlink">source</a>
+            <nav class="menulink-wrapper">
+                <a href="/archive" class="menulink">archive</a>
+                <a href="https://github.com/songziming/blog" class="menulink">source</a>
             </nav>
         </div>
     </header>
-    <main class="wrapper-full">
-        <%= yield %>
-    </main>
-    <footer id="footer" class="footer">
+
+    <div class="wrap-page skip-header">
+        <aside class="sidebar"><%= aside %></aside>
+        <main class="content skip-sidebar"><%= yield %></main>
+        <footer class="content skip-sidebar">
             <p>© <%= Date.today.year %> <a href="/about"><%= @config[:author] %></a></p>
             <p>Generated using <a href="https://nanoc.ws/">Nanoc</a>.
                 Hosted on <a href="https://www.digitalocean.com/?refcode=fa77aca48a33">DigitalOcean</a>.</p>
             <p>Blog source available on <a href="https://www.github.com/songziming/blog">Github</a>.</p>
-    </footer>
+        </footer>
+    </div>
+
+    <% if mathjax %>
+        <script src='/asset/js/mathjax.js?config=TeX-MML-AM_CHTML' async></script>
+    <% end %>
 </body>
 </html>
-

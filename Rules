@@ -7,7 +7,11 @@ compile '/notes/**/*.md' do
     title  = folder[-1].match(/^(\d+)-(.*)$/)[2]
     number = folder.map { |s| s.match(/^(\d+)-(.*)$/)[1] }
     filter :pandoc, from: 'markdown', to: 'html5', args: ['mathjax']
-    layout '/note.*', locals: { title: title }
+    layout '/base.*', locals: {
+        title: title,
+        aside: 'table of contents',
+        mathjax: true
+    }
     write "/#{number.join('/')}_#{item[:permalink]}.html"
 end
 
@@ -19,8 +23,19 @@ end
 
 compile '/*.html' do
     filter :erb
-    layout '/base.*', locals: { title: 'ZMKB' }
+    layout '/base.*', locals: {
+        title: @config[:title],
+        aside: 'hello world',
+        mathjax: false
+    }
     write item.identifier.to_s
+end
+
+ignore '/**/_*.scss'
+
+compile '/**/*.scss' do
+    filter :sass, syntax: :scss, style: :compact
+    write @item.identifier.without_ext + '.css'
 end
 
 compile '/**/*' do

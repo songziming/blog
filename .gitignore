@@ -3,6 +3,7 @@ Thumbs.db
 *.swp
 *~
 
-tmp/
 output/
+tmp/
+.sass-cache/
 crash.log
