@@ -1,21 +1,4 @@
-<aside id="sidebar" class="sidebar">
-    <p>Table of Contents:</p>
-    <p>lorem ipsum</p>
-    <p>dolor sit amet</p>
-    <p>hello, world!</p>
-    <p>Table of Contents:</p>
-    <p>lorem ipsum</p>
-    <p>dolor sit amet</p>
-    <p>hello, world!</p>
-</aside>
-<article class="article content">
-    <div class="article-header">
-        <h1 class="article-title"><%= title %></h1>
-    </div>
-    <div class="article-content">
-        <%= yield %>
-    </div>
-</article>
-<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script> -->
-<script src='/asset/js/mathjax.js?config=TeX-MML-AM_CHTML' async></script>
-<script src='/asset/js/sidebar.js' async></script>
+<h1 class="article-title"><%= title %></h1>
+<p class="article-meta">Category: <%= @item[:tags].to_s %></p>
+<%= yield %>
+<script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js"></script>

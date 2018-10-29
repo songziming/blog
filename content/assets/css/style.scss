@@ -1,0 +1,160 @@
+//==============================================================================
+// style settings
+
+$bg_home: #080808;      // header -> homelink
+$bg_menu: #14171b;      // header -> menulink
+$bg_body: #272e35;      // main content
+$bg_side: #32383f;      // side navigator
+
+$fg_home: #f7f7f7;      // header -> homelink
+$fg_menu: #ccc;         // header -> menulink
+$fg_body: #c2c3c5;      // main content
+$fg_side: #eee;         // side navigator
+
+$page_width:  980px;
+$side_width:  260px;
+$menu_height: 60px;
+$spacing:     15px;
+
+$font_size: 15px;
+$font_list: 'Open Sans',
+            'Helvetica Neue',
+            'WenQuanYi Micro Hei',
+            'Hiragino Sans GB',
+            'Hiragino Sans GB W3',
+            'Microsoft YaHei',
+            'sans-serif';
+
+//==============================================================================
+// global styles
+
+@import '_normalize.scss';
+@import '_solarized.scss';
+@import '_fonts.scss';
+
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing:    border-box;
+    -o-box-sizing:      border-box;
+    box-sizing:         border-box;
+}
+
+body {
+    overflow-x:       hidden;
+    overflow-y:       scroll;
+    background:       $bg_body;
+    color:            $fg_body;
+    font-size:        $font_size;
+    font-family:      $font_list;
+    text-size-adjust: 100%;
+    font-kerning:     normal;
+    -webkit-font-feature-settings: 'kern' 1;
+    -moz-font-feature-settings:    'kern' 1;
+    -o-font-feature-settings:      'kern' 1;
+    font-feature-settings:         'kern' 1;
+}
+
+a { text-decoration: none; color: #0e83cd; }
+p,  h1, h2, h3, h4, h5 { margin: 0.5em 0; }
+h1, h2, h3 { font-size: 1.3em; }
+h4         { font-size: 1.2em; }
+h5         { font-size: 1.1em; }
+
+.wrap-page {
+    margin-left:  auto;
+    margin-right: auto;
+    max-width:    $page_width;
+}
+
+//==============================================================================
+// header
+
+.header {
+    overflow:   hidden;
+    position:   fixed;
+    top:        0;
+    width:      100%;
+    background: $bg_menu;
+    z-index:    1;
+}
+
+.wrap-homelink, .wrap-menulink {
+    float:       left;
+    padding:     0 $spacing / 2;
+    text-align:  center;
+}
+.wrap-homelink {
+    background:  $bg_home;
+    width:       $side_width;
+    font-weight: bold;
+}
+
+.homelink, .menulink {
+    text-transform: uppercase;
+    line-height:    $menu_height;
+    position:       relative;
+    margin:         0 $spacing / 2;
+}
+.homelink { color: $fg_home; font-size: 20px; }
+.menulink { color: $fg_menu; font-size: 14px; }
+
+.homelink:before, .menulink:before {
+    content:    '';
+    position:   absolute;
+    left:       0;
+    bottom:     0;
+    width:      100%;
+
+    visibility:         hidden;
+    -webkit-transform:  scaleX(0);
+    -moz-transform:     scaleX(0);
+    -o-transform:       scaleX(0);
+    transform:          scaleX(0);
+
+    -webkit-transition: all 0.3s ease-in-out 0s;
+    -moz-transition:    all 0.3s ease-in-out 0s;
+    -o-transition:      all 0.3s ease-in-out 0s;
+    transition:         all 0.3s ease-in-out 0s;
+}
+
+.homelink:before { background-color: $fg_home; height: 2px; }
+.menulink:before { background-color: $fg_menu; height: 1px; }
+
+.homelink:hover:before, .menulink:hover:before {
+    visibility:        visible;
+    -webkit-transform: scaleX(1);
+    -moz-transform:    scaleX(1);
+    -o-transform:      scaleX(1);
+    transform:         scaleX(1);
+}
+
+//==============================================================================
+// side navigator
+
+.sidebar {
+    position:   fixed;
+    top:        $menu_height;
+    bottom:     0;
+    margin:     $spacing 0;
+    padding:    $spacing;
+    width:      $side_width;
+    background: $bg_side;
+    color:      $fg_side;
+    overflow-y: scroll;
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none;
+}
+
+//==============================================================================
+// main content
+
+.skip-header  { margin-top:  $menu_height; }
+.skip-sidebar { margin-left: $side_width;  }
+
+.content {
+    overflow-x: hidden;
+    overflow-y: none;
+    padding:    $spacing;
+}

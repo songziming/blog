@@ -1,5 +1,6 @@
-title:  blog.szm.me
+title:  Ziming Notebook
 author: Song Ziming
+source: https://github.com/songziming/blog
 
 text_extentions: ["html", "css", "js", "md"]
 
@@ -18,3 +19,18 @@ deploy:
         remote: https://github.com/songziming/blog.git
         branch: gh-pages
         forced: true
+
+pages:
+    - home: 'index.md'
+    - APUE:
+        - 'Contents': 'apue/index.md'
+        - 'Chapter 1. UNIX System Overview': 'apue/ch1.md'
+        - 'Chapter 2. UNIX Standardization and Implementations': 'apue/ch2.md'
+        - 'Chapter 3. File I/O': 'apue/ch3.md'
+        - 'Chapter 4. Files and Directories': 'apue/ch4.md'
+    - LKD:
+        - 'Contents': 'lkd/index.md'
+        - 'Chapter 1. Introduction to the Linux Kernel': 'lkd/ch1.md'
+        - 'Chapter 2. Getting Started with the Kernel': 'lkd/ch2.md'
+        - 'Chapter 3. Process Management': 'lkd/ch3.md'
+        - 'Chapter 4. Process Scheduling': 'lkd/ch4.md'

@@ -7,34 +7,27 @@ compile '/notes/**/*.md' do
     title  = folder[-1].match(/^(\d+)-(.*)$/)[2]
     number = folder.map { |s| s.match(/^(\d+)-(.*)$/)[1] }
     filter :pandoc, from: 'markdown', to: 'html5', args: ['mathjax']
-    layout '/base.*', locals: {
-        title: title,
-        aside: 'table of contents',
-        mathjax: true
-    }
+    layout '/note.*', locals: { title: title }
+    layout '/base.*', locals: { title: title, aside: 'fake-TOC' }
     write "/#{number.join('/')}_#{item[:permalink]}.html"
 end
 
-compile '/notes/**/asset/**/*' do
-    match  = item.identifier.to_s.match(/^\/notes\/(.*)\/asset\/(.*)$/)
+compile '/notes/**/assets/**/*' do
+    match  = item.identifier.to_s.match(/^\/notes\/(.*)\/assets\/(.*)$/)
     number = match[1].split('/').map { |s| s.match(/^(\d+)-(.*)$/)[1] }
-    write "/#{number.join('/')}/asset/#{match[2]}"
+    write "/#{number.join('/')}/assets/#{match[2]}"
 end
 
 compile '/*.html' do
     filter :erb
-    layout '/base.*', locals: {
-        title: @config[:title],
-        aside: 'hello world',
-        mathjax: false
-    }
-    write item.identifier.to_s
+    layout '/base.*', locals: { title: @config[:title], aside: '编程归档\n标签' }
+    write item.identifier.without_ext + ".html"
 end
 
 ignore '/**/_*.scss'
 
 compile '/**/*.scss' do
-    filter :sass, syntax: :scss, style: :compact
+    filter :sass, syntax: :scss, style: :compressed
     write @item.identifier.without_ext + '.css'
 end
 
