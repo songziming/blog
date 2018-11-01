@@ -5,32 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <title><%= title %></title>
+    <title><%= @item[:title] || @config[:title] %></title>
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-    <header id="header" class="header">
-        <div class="wrap-page">
-            <div class="wrap-homelink">
-                <a href="/" class="homelink"><%= @config[:title] %></a>
-            </div>
-            <nav class="wrap-menulink">
-                <a href="/archive" class="menulink">archive</a>
-                <a href="<%= @config[:source] %>" class="menulink">source</a>
-            </nav>
-        </div>
-    </header>
-
-    <div class="wrap-page skip-header">
-        <aside class="sidebar"><%= aside %></aside>
-        <main class="content skip-sidebar">
-            <%= yield %>
-        </main>
-        <footer class="content skip-sidebar">
-            <p>© <%= Date.today.year %> <%= @config[:author] %></p>
-            <p>Generated using <a href="https://nanoc.ws/">Nanoc</a>.</p>
-            <p>Source available on <a href="<%= @config[:source] %>">Github</a>.</p>
-        </footer>
-    </div>
+    <%= yield %>
 </body>
 </html>

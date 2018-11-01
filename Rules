@@ -1,27 +1,63 @@
 #!/usr/bin/env ruby
 
-layout '/**/*', :erb
+require 'uri'
+
+preprocess do
+    $categories = Hash.new { |map, key| map[key] = {} }
+    $tags       = Hash.new { |map, key| map[key] = {} }
+
+    # process static assets
+    @items.find_all('/notes/**/assets/**/*').each do |item|
+        match  = item.identifier.to_s.match(/^\/notes\/(.*)\/assets\/(.*)$/)
+        number = match[1].split('/').map { |s| s.match(/^(\d+)-(.*)$/)[1] }
+        item[:url] = "/#{number.join('/')}/assets/#{match[2]}"
+    end
+
+    # process markdown notes
+    @items.find_all('/notes/**/*.md').each do |item|
+        match  = item.identifier.to_s.match(/^\/notes\/(.*)\.md$/)
+        number = match[1].split('/').map { |s| s.match(/^(\d+)-(.*)$/)[1] }
+        titles = match[1].split('/').map { |s| s.match(/^(\d+)-(.*)$/)[2] }
+        item[:url]        = "/#{number.join('/')}_#{item[:permalink]}.html"
+        item[:title]      = titles[-1]
+        item[:categories] = titles[0..-2]
+        item[:tags].each { |t| $tags[t.downcase].store(item[:title], item[:url]) }
+    end
+
+    $tags.each do |k,v|
+        @items.create('', { :title => k, :notes => v }, "/tag/#{k}.html")
+    end
+end
 
 compile '/notes/**/*.md' do
-    folder = item.identifier.to_s.match(/^\/notes\/(.*)\.md$/)[1].split('/')
-    title  = folder[-1].match(/^(\d+)-(.*)$/)[2]
-    number = folder.map { |s| s.match(/^(\d+)-(.*)$/)[1] }
+    # folder = item.identifier.to_s.match(/^\/notes\/(.*)\.md$/)[1].split('/')
+    # title  = folder[-1].match(/^(\d+)-(.*)$/)[2]
+    # number = folder.map { |s| s.match(/^(\d+)-(.*)$/)[1] }
     filter :pandoc, from: 'markdown', to: 'html5', args: ['mathjax']
-    layout '/note.*', locals: { title: title }
-    layout '/base.*', locals: { title: title, aside: 'fake-TOC' }
-    write "/#{number.join('/')}_#{item[:permalink]}.html"
+    layout '/note.*' #, locals: { title: title }
+    layout '/base.*' #, locals: { title: title, aside: 'fake-TOC' }
+    # write "/#{number.join('/')}_#{item[:permalink]}.html"
+    write item[:url]
+end
+
+compile '/*.html' do
+    filter :erb
+    layout '/page.*'
+    layout '/base.*'#, locals: { title: @config[:title], aside: '编程归档\n标签' }
+    write item.identifier.without_ext + ".html"
+end
+
+compile '/tag/*' do
+    layout '/tag.*'
+    layout "/page.*"
+    layout '/base.*'#, locals: { title: item[:tag], aside: '编程归档\n标签' }
+    write item.identifier
 end
 
 compile '/notes/**/assets/**/*' do
     match  = item.identifier.to_s.match(/^\/notes\/(.*)\/assets\/(.*)$/)
     number = match[1].split('/').map { |s| s.match(/^(\d+)-(.*)$/)[1] }
     write "/#{number.join('/')}/assets/#{match[2]}"
-end
-
-compile '/*.html' do
-    filter :erb
-    layout '/base.*', locals: { title: @config[:title], aside: '编程归档\n标签' }
-    write item.identifier.without_ext + ".html"
 end
 
 ignore '/**/_*.scss'
@@ -34,3 +70,5 @@ end
 compile '/**/*' do
     write item.identifier.to_s
 end
+
+layout '/**/*', :erb

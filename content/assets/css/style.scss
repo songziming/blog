@@ -1,3 +1,5 @@
+// https://stackoverflow.com/questions/10732690/offsetting-an-html-anchor-to-adjust-for-fixed-header
+
 //==============================================================================
 // style settings
 
@@ -8,8 +10,12 @@ $bg_side: #32383f;      // side navigator
 
 $fg_home: #f7f7f7;      // header -> homelink
 $fg_menu: #ccc;         // header -> menulink
-$fg_body: #c2c3c5;      // main content
-$fg_side: #eee;         // side navigator
+$fg_body: #c2c3c5;      // main content text
+$fg_emph: #eee;         // emphasis text
+$fg_gray: #aaa;         // minor text, i.e. categories & footer
+$fg_line: #555;         // border, table, horizontal line, etc
+$fg_link: #0e83cd;
+$fg_code: #f5563d;
 
 $page_width:  980px;
 $side_width:  260px;
@@ -54,8 +60,8 @@ body {
     font-feature-settings:         'kern' 1;
 }
 
-a { text-decoration: none; color: #0e83cd; }
-p,  h1, h2, h3, h4, h5 { margin: 0.5em 0; }
+a { text-decoration: none; color: $fg_link; }
+// pre, p, h1, h2, h3, h4, h5 { margin: 0.5em 0 0; }
 h1, h2, h3 { font-size: 1.3em; }
 h4         { font-size: 1.2em; }
 h5         { font-size: 1.1em; }
@@ -69,7 +75,7 @@ h5         { font-size: 1.1em; }
 //==============================================================================
 // header
 
-.header {
+header.header {
     overflow:   hidden;
     position:   fixed;
     top:        0;
@@ -79,21 +85,17 @@ h5         { font-size: 1.1em; }
 }
 
 .wrap-homelink, .wrap-menulink {
-    float:       left;
-    padding:     0 $spacing / 2;
+    padding:     0 $spacing/2;
     text-align:  center;
 }
-.wrap-homelink {
-    background:  $bg_home;
-    width:       $side_width;
-    font-weight: bold;
-}
+.wrap-homelink { float: left; width: $side_width; background: $bg_home; font-weight: bold; }
+.wrap-menulink { float: right; }
 
 .homelink, .menulink {
     text-transform: uppercase;
     line-height:    $menu_height;
     position:       relative;
-    margin:         0 $spacing / 2;
+    margin:         0 $spacing/2;
 }
 .homelink { color: $fg_home; font-size: 20px; }
 .menulink { color: $fg_menu; font-size: 14px; }
@@ -136,16 +138,42 @@ h5         { font-size: 1.1em; }
     top:        $menu_height;
     bottom:     0;
     margin:     $spacing 0;
-    padding:    $spacing;
+    padding:    0 $spacing;
     width:      $side_width;
     background: $bg_side;
-    color:      $fg_side;
+    color:      $fg_emph;
     overflow-y: scroll;
 }
+.sidebar::-webkit-scrollbar { display: none; }
 
-.sidebar::-webkit-scrollbar {
-    display: none;
+.side-block            { border-bottom: 1px solid $fg_line; overflow: auto; }
+.side-block:last-child { border-bottom: 0px; }
+
+.side-block h1, .side-block h2, .side-block h3,
+.side-block h4, .side-block h5, .side-block h6 { margin: 1em 0 0; }
+
+.side-block ul {
+    margin: 0.5em 0 1em;
+    padding-left: 10px;
+    list-style: none;
+    line-height: 1.3em;
 }
+
+.side-block li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.side-block li ::before {
+    content: "» ";
+}
+
+//==============================================================================
+// footer
+
+footer.footer   { margin:   1em 0; color: $fg_gray;    }
+footer.footer p { margin: 0.3em 0; line-height: 1.4em; }
 
 //==============================================================================
 // main content
@@ -154,7 +182,101 @@ h5         { font-size: 1.1em; }
 .skip-sidebar { margin-left: $side_width;  }
 
 .content {
-    overflow-x: hidden;
-    overflow-y: none;
-    padding:    $spacing;
+    text-align: justify;
+    padding:    0 $spacing;
+}
+
+.article {
+    padding: $spacing 0 0;
+    border-bottom: 1px solid $fg_line;
+}
+
+.article p,  .article ul, .article pre { line-height: 1.4em; margin: 1em 0; }
+.article h1, .article h2, .article h3,
+.article h4, .article h5, .article h6 {
+    padding-top:            #{$menu_height + $spacing};
+    margin-top:  calc(1em - #{$menu_height + $spacing + $font_size});
+    color:       $fg_emph;
+}
+.article h1.article-title {
+    font-size: 1.4em;
+    color:     $fg_code;
+    margin:    0;
+    padding:   0;
+}
+.article-title > a       { color: $fg_emph; transition: color 0.3s; }
+.article-title > a:hover { color: $fg_link; }
+.article p.article-meta         { color: $fg_gray; font-size: 0.9em; margin: 0.5em 0 1em; }
+.article p.article-digest       { margin-top: 0; }
+.article p.article-digest:after { content: "..."; }
+
+//==============================================================================
+// markdown
+
+code {
+    font-family: "Source Code Pro", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-size: #{$font_size - 1};
+}
+
+:not(pre) > code {
+    padding: 0 5px;
+    border-radius: 2px;
+    background: $bg_side;
+    color: $fg_code;
+}
+
+pre {
+    background-color: $bg_side;
+    padding: $spacing/4 $spacing/2;
+    overflow: hidden;
+}
+
+dl dt { font-weight: bold; }
+dl dd { margin-left: 2em;  }
+
+blockquote {
+    overflow: auto;
+    margin: 1em 0;
+    padding: 0 1em;
+    border-left: solid 2px $fg_line;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+hr {
+    border:     none;
+    border-top: 1px solid $fg_line;
+}
+
+img {
+    display: block;
+    margin:  1em auto;
+}
+
+table {
+    margin:          1em auto;
+    border-spacing:  0;
+    border-collapse: collapse;
+    line-height:     1.3em;
+}
+
+table th, table td {
+    padding: 0 10px;
+    border:  1px solid $fg_line;
+}
+
+table thead {
+    background:  $bg_side;
+    color:       $fg_emph;
+    font-weight: bold;
+}
+
+table tbody tr {
+    font-weight: normal;
+}
+
+table tbody tr:last-child, table tbody tr:last-child {
+    border: none;
 }
