@@ -1,9 +1,0 @@
-<% @items.find_all('/notes/**/*.md').each do |note| %>
-<section class="article">
-    <h1 class="article-title">
-        <a href="<%= note[:url] %>"><%= note[:title] %></a>
-    </h1>
-    <p class="article-meta">Tags: <%= note[:tags].join(' | ') %></p>
-    <p class="article-digest"><%= digest(note) %></p>
-</section>
-<% end %>

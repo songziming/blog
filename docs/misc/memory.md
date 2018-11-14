@@ -1,0 +1,145 @@
+---
+title: "内存结构"
+kind: "article"
+tags: ["memory"]
+---
+
+> 参考资料：
+>
+> - [圖解RAM結構與原理，系統記憶體的Channel、Chip與Bank](https://www.techbang.com/posts/18381-from-the-channel-to-address-computer-main-memory-structures-to-understand)
+> - [What every programmer should know about memory, Part 1](https://lwn.net/Articles/250967/)
+
+### 内存地址到内存条
+
+应用程序使用虚拟地址，CPU 将虚拟地址转换为物理地址，然后将内存读写动作发给内存控制器（在 PC 上就是北桥芯片）。内存控制器将物理地址转换为总线地址（bus address），将具体的总线设备发送读写指令。如果目标物理地址被映射到内存条中，
+
+### RAM
+
+现有的 RAM 可以分为两类：SRAM 和 DRAM。SRAM 的全称是 Static Random Access Memory，结构相对复杂，单位体积容量较少，但是存取速度更快，常用作 CPU 内部的寄存器。DRAM 全称 Dynamic Random Access Memory，结构更简单，单位体积容量更大，但是存取速度要比 SRAM 慢，常用作计算机运行内存。
+
+SRAM 和 DRAM 都属于易失性存储介质（volatile memory），也就是断电之后存储在其中的数据都会丢失。DRAM 需要不断地进行再充电（refresh），否则存储的电荷会逐渐消失，因此，“刷新频率”也是现有的内存产品的关键指标之一。
+
+目前常见的商品内存条是 DDR3 或 DDR4，都属于 DRAM 类型。
+
+### DRAM 子系统
+
+DRAM 内部还有更细化的结构，依据层级大小可以划分为 `channel > DIMM > rank > chip > bank > row/column`。
+
+channel（通道）可能只有一个，DIMM 通常就是一个内存条包装。rank（路）
+
+最基本的数据单元（storage cell）的结构是二维矩阵，叫做 Chip，每一行就叫做一个 row，每一列叫做一个 column。此外还有一个 row-buffer，是执行内存写入和读取操作时的缓冲区。
+
+对一个 row/column 矩阵执行的读写操作单位是 bit，也就是对于一个 row/column 矩阵，只能一次读一个 bit，写一个 bit。
+
+但是 CPU 往往一次操作多个 bit，例如对于 64-bit 的 CPU，每次内存读写操作对应 64 个 bit。因此，同时有 64 个 CHIP 同时工作，如果是启用了 ECC 的内存，则有 72 个。
+
+### 访问周期
+
+DRAM 也有自己的频率，但是一次内存访问并不能在一个周期之内完成。虽然 DDR 内存可以在一个周期之内传递两个机器字的数据，但是寻址需要花费很多时间。
+
+之间说过，最基本的 chip 组织成二维矩阵的形式，因此在访问内存的时候，需要指定要访问其中哪一行、哪一列。指定行的过程叫做 RAS（Row Address Selection），指定列的过程叫做 CAS（Column Address Selection）。RAS 和 CAS 是串行进行的，RAS 之后，内存会把选定的行中的数据放入 row-buffer 里。如果相邻两次内存访问的 RAS 取值相同，那么可以省去第二次的 RAS，提升速度。
+
+访问一次内存消耗的时间较长，因此内存通过增加数据吞吐量的方法来补偿。
+
+### memory allocator 优化
+
+有些 memory allocator 已经开始考虑缓存的影响了，让数据尽量位于同一个缓存行（cache line）之中。类似，考虑了 DRAM 结构之后，可以让数据尽可能位于同一个 row-buffer 之中，这样，访问相同 row 可以提升一定的速度。
+
+此外，让不同的线程使用不同的 bank，这样不同 bank 可以独立进行寻址，访问内存在硬件层次上可以并行。
+
+尽可能让不同 thread 使用的物理页对应相同的 cache line，对应不同的 bank，因此相关逻辑应该在 page frame allocator 中实现，配合 page coloring 技术。
+
+### dmidecode
+
+dmidecode 是 Linux 系统下的一个命令行工具，能够读取 DMI 表（也有的说法是 SMBIOS 表），通过这个工具，可以获取内存的相关硬件参数。命令语法是
+
+```bash
+dmidecode -t <type>
+```
+
+其中 type 字段的合法取值与解释如下：
+
+| type |            information            |
+|:----:|:----------------------------------|
+|   0  | BIOS                              |
+|   1  | System                            |
+|   2  | Base Board                        |
+|   3  | Chassis                           |
+|   4  | Processor                         |
+|   5  | Memory Controller                 |
+|   6  | Memory Module                     |
+|   7  | Cache                             |
+|   8  | Port Connector                    |
+|   9  | System Slots                      |
+|  10  | On Board Devices                  |
+|  11  | OEM Strings                       |
+|  12  | System Configuration Options      |
+|  13  | BIOS Language                     |
+|  14  | Group Associations                |
+|  15  | System Event Log                  |
+|  16  | Physical Memory Array             |
+|  17  | Memory Device                     |
+|  18  | 32-bit Memory Error               |
+|  19  | Memory Array Mapped Address       |
+|  20  | Memory Device Mapped Address      |
+|  21  | Built-in Pointing Device          |
+|  22  | Portable Battery                  |
+|  23  | System Reset                      |
+|  24  | Hardware Security                 |
+|  25  | System Power Controls             |
+|  26  | Voltage Probe                     |
+|  27  | Cooling Device                    |
+|  28  | Temperature Probe                 |
+|  29  | Electrical Current Probe          |
+|  30  | Out-of-band Remote Access         |
+|  31  | Boot Integrity Services           |
+|  32  | System Boot                       |
+|  33  | 64-bit Memory Error               |
+|  34  | Management Device                 |
+|  35  | Management Device Component       |
+|  36  | Management Device Threshold Data  |
+|  37  | Memory Channel                    |
+|  38  | IPMI Device                       |
+|  39  | Power Supply                      |
+
+可见，与内存相关的取值有 5、6、16、17、18、19、20、33、37。
+
+### 案例——PALLOC
+
+论文《PALLOC: DRAM Bank-Aware Memory Allocator for Performance Isolation on Multicore Platforms》。
+
+现有的 OS 都把 DRAM 看作完整的一坨，不考虑内部的细化结构，也就是多少 rank、多少 bank 等一概不考虑。当然，这样开发起来更加容易，而且硬件设计者也在尽力弥合细节的性能影响。但不可否认的是，内部结构确实对性能有影响，既然这样，我们就有理由去追求这些性能提升。
+
+由于内存由多个 bank 组成，在多核环境下，访问不同 bank 会造成性能的差异。如果一个多线程的应用程序，不同的线程运行在不同的 CPU 上，分配内存时，不同的线程使用不同 bank 中的内存，这样可以显著地提升性能。
+
+但是 PALLOC 的目的并不是提升性能，而是增强隔离性和可预测性，适合于嵌入式系统。也就是说，避免因使用相同/不同 bank 而造成的多线程应用性能波动。PALLOC 使 thread 之间的差异变小，但是可能造成单个 thread 的性能小幅下降（因为可用的内存变小了）。
+
+PALLOC 用的是类似内存分区的方式，划定某个 bank 归哪个 CPU 使用之后，这个 bank 就不可能被其他 CPU 使用。
+
+重点：
+- 在一个 CPU 上申请的内存不一定就在这个 CPU 上使用。但这并不是 PALLOC 的问题，而是程序设计这个问题。一个“好习惯”就是自己分配自己使用的内存。
+- CPU 数量和 bank 数量未必相等，有可能 bank 数量比 CPU 数量少（类似 PCID 的分配）。对于 PALLOC，由于是面向嵌入式系统的，需要设计人员人工指定每个 bank 供哪个 Core 使用（可以在运行时动态更改配置）。
+- 文章仅仅考虑了 bank，但是实际上 DRAM 的结构不仅仅有 bank，如果考虑更细的结构（例如 row）是不是性能提升更好？
+- bank 的粒度是多大？应该是页大小的整数倍，而且一个 bank 应该映射到连续的物理地址范围。既然需要关心物理地址，那么必然需要编写内核代码。
+
+### 案例——High Efficiency General Memory Allocator
+
+论文《High Efficiency General Memory Allocator》。
+
+主要特点是把软件底层和上层特征统一了起来。内存分配器会根据软件的上层行为调整内存分配策略。
+
+许多软件都实现了自定义的内存分配器，例如在 SSL、LUA 等项目中，都实现了某种类似内存池的机制。但是每个软件都定制一个 allocator 比较麻烦，这篇文章的目的就是开发一个通用的 allocator，能实现更高的性能，也可以实现通用性。
+
+两个假设：
+- 如果程序中大量进行内存分配，那么这些内存分配基本上都是在循环中进行的。
+- 循环中进行的内存分配通常都是大小相同的。
+
+文章借助编译器对程序进行 instrumentation，利用 LLVM 识别循环和 malloc/free 的调用信息。
+
+### NUMA
+
+NUMA 表示非均匀内存访问，也就是在系统中，每个处理器访问内存的速度是不同。对于 x86 处理器来说，如果一个计算机中只安装了一块多核处理器，那么这个计算机是一个标准的 UMA 架构，因为同一个硅片上的逻辑处理共享同一个内存控制器（原北桥芯片），因此它们看到的内存结构是相同的。
+
+如果计算机主板上有多个CPU插槽，情况就不一样了。由于每个CPU包装（package）都集成了自己的内存控制器，因此不同插槽上的处理器所看到的内存并不是均匀的。每个插槽（或者节点）都有一部分与其关联的内存，访问这部分内存速度较快；访问其他节点关联的内存则速度较慢。因此，对于单节点的多核处理器，并不是NUMA结构，NUMA的特点仅仅在多处理器的情况下才会体现出来。
+
+所以，虽然x86使用了NUMA架构，但是对于普通桌面系统而言，并不需要去考虑。只有那些高性能的服务器才需要考虑NUMA的影响。

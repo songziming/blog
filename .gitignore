@@ -1,9 +1,8 @@
-.DS_Store
-Thumbs.db
-*.swp
 *~
+*.swp
 
-output/
-tmp/
+site/
 .sass-cache/
-crash.log
+
+Thumbs.db
+.DS_Store

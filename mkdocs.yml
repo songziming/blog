@@ -1,0 +1,26 @@
+site_name:   Ziming Notebook
+site_author: Song Ziming
+repo_url:    https://github.com/songziming/blog
+
+plugins: []
+markdown_extensions:
+    - codehilite
+
+theme:
+    name:       null
+    custom_dir: writethedocs
+
+nav:
+    - 'Welcome': 'index.md'
+    - 'OS Dev':
+        - '自旋锁': 'osdev/spinlock.md'
+    - 'AI':
+        - '误差反传': 'ai/backpropagation.md'
+    - 'Misc':
+        - '计算机启动过程分析':        'misc/computer_starting_sequence.md'
+        - '使用GCC和Make管理依赖项':   'misc/deps_management.md'
+        - '让Qt5支持fcitx输入法':      'misc/fcitx_with_qt5.md'
+        - '使用LD_PRELOAD拦截API调用': 'misc/ld_preload_hook.md'
+        - '使用xdotool模拟用户交互':   'misc/xdotool.md'
+        - '内存原理':                  'misc/memory.md'
+        - 'VxWorks源码分析':           'misc/vxworks_source_analysis.md'
