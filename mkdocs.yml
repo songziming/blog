@@ -1,5 +1,6 @@
 site_name:   Ziming Notebook
 site_author: Song Ziming
+repo_name:   Github
 repo_url:    https://github.com/songziming/blog
 
 plugins: []

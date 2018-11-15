@@ -28,19 +28,10 @@
             {{ page.content }}
         </article>
         <footer>
-            <p>© {{ build_date_utc.strftime('%Y') }} {{ config.site_author }}.</p>
-            <p>Generated using <a href="https://mkdocs.org">MkDocs</a>. Source available on <a href="{{ config.repo_url }}">Github</a>.</p>
+            <p>© Copyright {{ build_date_utc.strftime('%Y') }} {{ config.site_author }}.</p>
+            <p>Generated using <a href="https://mkdocs.org">MkDocs</a>. Source available on <a href="{{ config.repo_url }}">{{ config.repo_name }}</a>.</p>
         </footer>
     </main></div>
-    <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js">
-MathJax.Hub.Config({
-    jax: ["input/TeX","output/HTML-CSS"],
-    extensions: ["tex2jax.js"],
-    tex2jax: {
-        inlineMath:  [ [ '$','$' ], ['\\(','\\)'] ],
-        displayMath: [ ['$$','$$'], ['\\[','\\]'] ]
-    }
-});
-    </script>
+    {% include 'mathjax.html' %}
 </body>
 </html>

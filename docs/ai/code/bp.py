@@ -48,7 +48,6 @@ class Network:
         for l in self.layers:
             y = l.forward(y)
         dy = y - t.reshape((1, t.size)) # output layer's error
-        # print(np.sum(dy * dy))
         for l in reversed(self.layers):
             dy = l.backward(dy)
             l.update(0.8)
