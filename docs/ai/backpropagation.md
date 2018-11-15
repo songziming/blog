@@ -16,7 +16,7 @@ $$ layer[k].x[i] = \sum_{j=0}^{layer[k-1].len-1} layer[k-1].y[j] * w[k][j,i] - b
 
 其中`w`是权值矩阵，`b`是偏移。特别地，我们可以将偏移和权值组合起来，如图：
 
-![加权求和](01_weighted_sum.svg)
+![加权求和](assets/01_weighted_sum.svg)
 
 这样就可以将权值和偏移量使用同一个矩阵来表示，每层的矩阵使用数组`w`来保存。输入层不存在权值矩阵，因此数组`w`的下标从`1`开始。
 
@@ -84,7 +84,7 @@ $$
 
 联系到我们把偏移量放在了矩阵`w[k+1]`中，直接计算会导致输出的向量多一个元素，但这个多出来的元素不会影响我们的计算，直接将其忽略即可，如图：
 
-![误差偏导的层间递推](02_partial_calc.svg)
+![误差偏导的层间递推](assets/02_partial_calc.svg)
 
 ### 推导过程总结
 
@@ -124,6 +124,13 @@ class Layer:
 `Layer`只能表示神经网络中的一层，因此我们需要一个`MLNetwork`类，将各层组织起来：
 
 ~~~ python
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
+def dsigmoid(x):
+    y = sigmoid(x)
+    return y * (1.0 - y)
+
 class MLNetwork:
 def __init__(self, input_size):
         self.input_size  = input_size
