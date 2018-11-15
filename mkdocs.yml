@@ -16,7 +16,7 @@ nav:
     - 'OS Dev':
         - '自旋锁': 'osdev/spinlock.md'
     - 'AI':
-        - '误差反传': 'ai/backpropagation.md'
+        - '误差反传': 'ai/bp.md'
     - 'Misc':
         - '计算机启动过程分析':        'misc/computer_starting_sequence.md'
         - '使用GCC和Make管理依赖项':   'misc/deps_management.md'

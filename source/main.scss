@@ -55,6 +55,11 @@ a:hover { text-decoration: underline; }
     list-style: none;
 }
 
+.left > ul {
+    margin-top: $base-font-size;
+    margin-bottom: 28px;
+}
+
 .left li a, .left li span {
     display:       block;
     line-height:   28px;
@@ -157,9 +162,9 @@ a.homelink:hover {
     text-align: justify;
 }
 
-.wrap article {
-    margin-bottom: $base-font-size / 2;
-}
+// .wrap article {
+//     margin-bottom: $base-font-size / 2;
+// }
 
 .wrap footer {
     border-top: 1px solid $line-color;
@@ -167,7 +172,7 @@ a.homelink:hover {
 }
 
 .wrap footer p {
-    padding: 0;
+    margin: 0;
 }
 
 //==============================================================================
@@ -175,8 +180,8 @@ a.homelink:hover {
 
 h1, h2, h3, h4, h5, h6, p, hr,
 pre, ul, ol, table, blockquote {
-    margin:  0;
-    padding: $base-font-size / 2 0;
+    margin:  $base-font-size 0;
+    padding: 0;
 }
 
 article h1, article h2, article h3,
@@ -186,8 +191,8 @@ article h4, article h5, article h6 {
 }
 
 article h1.title {
-    font-size:   1.4em;
-    padding-top: calc(35px - 0.5em);
+    font-size:  1.4em;
+    margin-top: calc(35px - 0.5em);
 }
 
 a {
@@ -196,6 +201,11 @@ a {
 
 article ul, article ol {
     margin-left: 2em;
+}
+
+article li > ul {
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 code, pre {
@@ -212,12 +222,14 @@ dl dt { font-weight: bold; }
 dl dd { margin-left: 2em;  }
 
 blockquote {
-    margin: 1em 0;
     overflow: auto;
     padding: 0 1em;
     border-left: solid 2px $line-color;
     background: rgba(0, 0, 0, 0.05);
 }
+
+blockquote > *:first-child { margin-top:    $base-font-size / 2; }
+blockquote > *:last-child  { margin-bottom: $base-font-size / 2; }
 
 hr {
     border:     none;

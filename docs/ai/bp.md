@@ -35,13 +35,13 @@ $$ w[k][i,j] = w[k][i,j] - \eta \frac{\partial E}{\partial w[k][i,j]} $$
 因此，关键在于求出误差对于每个权值的偏导数。直接写出偏导数关于教师信号的表达式并不容易，但是可以使用后一层的相关参数来表示。权值`w[k][i,j]`只会影响神经元输入`layer[k].x[j]`，因此误差偏导可以展开：
 
 $$
-\begin{eqnarray}
+\begin{aligned}
 \frac{\partial E}{\partial w[k][i,j]}
-&=& \frac{\partial E}{\partial layer[k].x[j]} \frac{\partial layer[k].x[j]}{\partial w[k][i,j]} \\\\
-&=& \frac{\partial E}{\partial layer[k].x[j]} layer[k-1].y[i] \\\\
-&=& \frac{\partial E}{\partial layer[k].y[j]} \frac{\partial layer[k].y[j]}{\partial layer[k].x[j]} layer[k-1].y[i] \\\\
-&=& \frac{\partial E}{\partial layer[k].y[j]} f'(layer[k].x[j]) layer[k-1].y[i]
-\end{eqnarray}
+&= \frac{\partial E}{\partial layer[k].x[j]} \frac{\partial layer[k].x[j]}{\partial w[k][i,j]} \\\\
+&= \frac{\partial E}{\partial layer[k].x[j]} layer[k-1].y[i] \\\\
+&= \frac{\partial E}{\partial layer[k].y[j]} \frac{\partial layer[k].y[j]}{\partial layer[k].x[j]} layer[k-1].y[i] \\\\
+&= \frac{\partial E}{\partial layer[k].y[j]} f'(layer[k].x[j]) layer[k-1].y[i]
+\end{aligned}
 $$
 
 通过上面的推导，我们把误差关于某一个权值的偏导转换成了关于后一层输出的偏导，其余参数均为已知（对于偏移，只需要将`layer[k-1].y[i]`换成`-1`）。因此，关键就变成了如何求解误差`E`关于神经元输出值`layer[k].y[j]`的偏导数。
@@ -53,13 +53,13 @@ $$ \frac{\partial E}{\partial layer[-1].y[j]} = layer[-1].y[j] - t[j] $$
 对于隐层节点，我们同样可以将这个偏导数使用后一层的数据来表示：
 
 $$
-\begin{eqnarray}
+\begin{aligned}
 \frac{\partial E}{\partial layer[k].y[j]}
-&=& \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].x[i]} \frac{\partial layer[k+1].x[i]}{\partial layer[k].y[j]} \\\\
-&=& \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].x[i]} w[k+1][j,i] \\\
-&=& \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].y[i]} \frac{\partial layer[k+1].y[i]}{\partial layer[k+1].x[i]} w[k+1][j,i] \\\\
-&=& \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].y[i]} f'(layer[k+1].x[i]) w[k+1][j,i]
-\end{eqnarray}
+&= \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].x[i]} \frac{\partial layer[k+1].x[i]}{\partial layer[k].y[j]} \\\\
+&= \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].x[i]} w[k+1][j,i] \\\
+&= \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].y[i]} \frac{\partial layer[k+1].y[i]}{\partial layer[k+1].x[i]} w[k+1][j,i] \\\\
+&= \sum_{i=0}^{layer[k+1].len-1} \frac{\partial E}{\partial layer[k+1].y[i]} f'(layer[k+1].x[i]) w[k+1][j,i]
+\end{aligned}
 $$
 
 由于隐层神经元与下一层的所有神经元都有连接，因此误差也会通过后一层的每个神经元传播到输出层。在展开偏导数的时候，也要计算后一层的每一个神经元。
@@ -131,7 +131,7 @@ def dsigmoid(x):
     y = sigmoid(x)
     return y * (1.0 - y)
 
-class MLNetwork:
+class BPNet:
 def __init__(self, input_size):
         self.input_size  = input_size
         self.output_size = input_size
