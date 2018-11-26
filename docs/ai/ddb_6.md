@@ -1,0 +1,1 @@
+Deep feedforward networks、feedforward neural networks、multilayer perceptrons（多层感知机，MLP），这些术语说的都是同一种网络。
