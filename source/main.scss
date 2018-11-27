@@ -156,19 +156,29 @@ a.homelink:hover {
     margin:     0 auto;
 }
 
+.rest header {
+    overflow: auto;
+    background: #ddd;
+}
+
+.rest header h1.title {
+    color: $emph-color;
+    font-weight: bold;
+    font-size: 1.4em;
+    line-height: 70px;
+    margin: 0 $base-font-size;
+}
+
 .wrap article, .wrap footer {
     margin:     0 $base-font-size;
     overflow:   auto;
     text-align: justify;
 }
 
-// .wrap article {
-//     margin-bottom: $base-font-size / 2;
-// }
-
 .wrap footer {
     border-top: 1px solid $line-color;
-    padding: 1em 0;
+    padding: 2em 0;
+    text-align: center;
 }
 
 .wrap footer p {
@@ -190,10 +200,10 @@ article h4, article h5, article h6 {
     font-weight: bold;
 }
 
-article h1.title {
-    font-size:  1.4em;
-    margin-top: calc(35px - 0.5em);
-}
+// article h1.title {
+//     font-size:  1.4em;
+//     margin-top: calc(35px - 0.5em);
+// }
 
 a {
     color: $link-color;
@@ -210,7 +220,6 @@ article li > ul {
 
 code, pre {
     font-family:   'Source Code Pro', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    font-size:     0.95em;
     overflow:      hidden;
     border-radius: 2px;
 }

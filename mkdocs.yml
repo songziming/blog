@@ -20,8 +20,9 @@ nav:
         # - '误差反传': 'ai/bp.md'
         # - 'ch6 Deep Feedforward Network': 'ai/ddb_6.md'
         # - 'ch7 Regularization for Deep Learning': 'ai/ddb_7.md'
-    - 'VxWorks':
-        - 'VxWorks代码分析01': 'vxworks/src_analysis_1.md'
+    - 'VxWorks代码分析':
+        - '基本概念与启动过程': 'vxworks/src_analysis_1.md'
+        - '任务管理和调度策略': 'vxworks/src_analysis_2.md'
     - 'Misc':
         - '计算机启动过程分析':        'misc/computer_starting_sequence.md'
         - '使用GCC和Make管理依赖项':   'misc/deps_management.md'
