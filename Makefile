@@ -1,11 +1,11 @@
-site: theme
+site:
 	mkdocs build
 
-serve: theme
+serve:
 	mkdocs serve
 
 theme:
 	sass --style compressed source/main.scss writethedocs/css/main.css
 
 deploy: site
-	rsync -ru site/ root@vultr.szm.me:~/blog/
+	rsync -ru site/ root@szm.me:~/blog/

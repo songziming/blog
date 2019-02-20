@@ -1,3 +1,7 @@
+---
+status: draft
+---
+
 处理器间中断。
 
 多核环境下，可以使用Local APIC发送中断到其他CPU，实现跨处理器的消息。Local APIC同时也是中断控制器，替代8259 PIC。不同之处是，Local APIC除了可以接收中断，还可以发送中断。

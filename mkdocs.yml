@@ -1,5 +1,6 @@
-site_name:   Ziming Notebook
+site_name:   Ziming's Notebook
 site_author: Song Ziming
+
 repo_name:   Github
 repo_url:    https://github.com/songziming/blog
 
@@ -12,21 +13,8 @@ theme:
     custom_dir: writethedocs
 
 nav:
-    - 'Welcome': 'index.md'
-    - 'OS Dev':
-        - '自旋锁': 'osdev/spinlock.md'
-        - '无锁字符终端驱动': 'osdev/lockless_console.md'
-    # - 'AI':
-        # - '误差反传': 'ai/bp.md'
-        # - 'ch6 Deep Feedforward Network': 'ai/ddb_6.md'
-        # - 'ch7 Regularization for Deep Learning': 'ai/ddb_7.md'
-    - 'VxWorks代码分析':
-        - '基本概念与启动过程': 'vxworks/src_analysis_1.md'
-        - '任务管理和调度策略': 'vxworks/src_analysis_2.md'
-    - 'Misc':
-        - '计算机启动过程分析':        'misc/computer_starting_sequence.md'
-        - '使用GCC和Make管理依赖项':   'misc/deps_management.md'
-        - '让Qt5支持fcitx输入法':      'misc/fcitx_with_qt5.md'
-        - '使用LD_PRELOAD拦截API调用': 'misc/ld_preload_hook.md'
-        - '使用xdotool模拟用户交互':   'misc/xdotool.md'
-        - '内存原理':                  'misc/memory.md'
+    - "index.md"
+    - "系统开发":
+        - "osdev/lockless-console.md"
+    - "杂项":
+        - "misc/deps-management.md"
