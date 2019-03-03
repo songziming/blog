@@ -1,5 +1,6 @@
 ---
 title: MkDocs建站事项
+permalink: mkdocs
 ---
 
 MkDocs原本是一个文档生成器，目录是在配置文件中使用`nav`变量定义的，因此用户可以有100%的控制权。

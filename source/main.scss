@@ -39,7 +39,7 @@ a:hover { text-decoration: underline; }
     left:       0;
     top:        0;
     bottom:     0;
-    width:      280px;
+    width:      300px;
     overflow-x: hidden;
     overflow-y: auto;
     background: $nav-bg-color;
@@ -114,9 +114,8 @@ a:hover { text-decoration: underline; }
 a.homelink {
     position:       relative;
     text-transform: uppercase;
-    font-size:      1.4em;
-    font-weight:    bold;
-    line-height:    70px;
+    font-size:      1.3em;
+    line-height:    80px;
     color:          #fff;
 }
 
@@ -147,7 +146,7 @@ a.homelink:hover {
 // main body
 
 .rest {
-    margin-left: 280px;
+    margin-left: 300px;
     color:       $text-color;
 }
 
@@ -165,7 +164,7 @@ a.homelink:hover {
     color: $emph-color;
     font-weight: bold;
     font-size: 1.4em;
-    line-height: 70px;
+    line-height: 80px;
     margin: 0 $base-font-size;
 }
 
