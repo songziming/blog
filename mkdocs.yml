@@ -15,7 +15,5 @@ theme:
 nav:
     - "index.md"
     - "系统开发":
-        - "osdev/lockless-console.md"
-    - "杂项":
-        - "misc/deps-management.md"
-        - "misc/site-building.md"
+        - "osdev/lockless_console.md"
+        - "osdev/page_frame_allocation.md"
