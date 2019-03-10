@@ -2,7 +2,7 @@
 @import 'config.scss';
 @import 'solarized-light.scss';
 
-//==============================================================================
+//------------------------------------------------------------------------------
 // global settings
 
 * {
@@ -31,7 +31,22 @@ h6 { font-size: 1.0em; }
 a       { text-decoration: none;      }
 a:hover { text-decoration: underline; }
 
-//==============================================================================
+body hanla:after {
+    content:   ' ';
+    display:   inline;
+    font-size: 0.9em;
+}
+
+body code hanla,
+body pre  hanla,
+body kbd  hanla,
+body samp hanla,
+body ol > hanla,
+body ul > hanla {
+    display: none;
+}
+
+//------------------------------------------------------------------------------
 // left side navigation section
 
 .left {
@@ -102,7 +117,7 @@ a:hover { text-decoration: underline; }
     font-weight:   bold;
 }
 
-//==============================================================================
+//------------------------------------------------------------------------------
 // home link area
 
 .wrap-homelink {
@@ -142,7 +157,7 @@ a.homelink:hover {
     transform:  scaleX(1);
 }
 
-//==============================================================================
+//------------------------------------------------------------------------------
 // main body
 
 .rest {
@@ -184,7 +199,7 @@ a.homelink:hover {
     margin: 0;
 }
 
-//==============================================================================
+//------------------------------------------------------------------------------
 // markdown
 
 h1, h2, h3, h4, h5, h6, p, hr,
@@ -198,11 +213,6 @@ article h4, article h5, article h6 {
     color: $emph-color;
     font-weight: bold;
 }
-
-// article h1.title {
-//     font-size:  1.4em;
-//     margin-top: calc(35px - 0.5em);
-// }
 
 a {
     color: $link-color;
@@ -223,7 +233,7 @@ code, pre {
     border-radius: 2px;
 }
 
-code { padding: 0     0.4em; margin: 0 0.2em; }
+code { padding: 0     0.2em; }
 pre  { padding: 0.3em 0.7em; }
 
 dl dt { font-weight: bold; }
