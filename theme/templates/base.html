@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ SITENAME }}{% endblock %}</title>
+    <link href="/{{ THEME_STATIC_DIR }}/fonts.css" rel="stylesheet" />
+    <link href="/{{ THEME_STATIC_DIR }}/style.css" rel="stylesheet" />
+</head>
+<body>
+    <header class="header">
+        <nav class="wrapper">
+            <a class="homelink" href="/"><strong>{{ SITENAME }}</strong></a>
+            {% if SOURCE %}
+            <a class="navlink" href="{{ SOURCE }}">source</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main class="wrapper">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer wrapper">
+        <p>Copyright © {{ THISYEAR }} {{ AUTHOR }}</p>
+    </footer>
+</body>
+</html>

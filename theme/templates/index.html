@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Home | {{ SITENAME }}{% endblock %}
+{% block content %}
+    {% for article in articles_page.object_list %}
+    <article class="entry">
+        <div class="date">
+            <p>
+                <span>{{ article.date.strftime('%Y-%m-%d') }}</span>
+            </p>
+        </div>
+        <div class="post">
+            <p>
+                <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title | striptags }}</a>
+                <br>
+                {{ article.summary | striptags }}
+            </p>
+        </div>
+    </article>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,117 @@
+/**
+ * 这个网站不需要多么华丽，因此css样式只要定义必要的就可以了，甚至连user-agent默认样式都不需要重置
+ * 不需要用css reset或者normalize那样的库。
+ * 不过确实可以引入一部分前端开发的工具，使用scss编写样式表，并且将生成的html、css压缩混淆。这一步应该可以通过Pelican插件完成。
+ */
+
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    padding: 0;
+    border: 0;
+    margin: 0;
+
+    background: #fff;
+    color: #111;
+    font-family: "Open Sans", "Helvetica Neue", "Segoe UI",
+                 "WenQuanYi Micro Hei", "Hiragino Sans GB",
+                 "Microsoft YaHei", "STXihei", "sans-serif";
+    font-size: 15px;
+
+    text-size-adjust: 100%;
+    font-kerning: normal;
+    text-rendering: geometricPrecision;
+    overflow-y: scroll;
+
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+}
+
+a {
+    text-decoration: none;
+    color: #07c;
+}
+
+p {
+    margin: 1em 0;
+    line-height: 1.6em;
+    text-align: justify;
+}
+
+.wrapper {
+    display: block;
+    overflow: auto;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 1em;
+}
+
+.header {
+    background: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0 9px;
+    margin-bottom: 1em;
+}
+
+.homelink, .navlink {
+    text-transform: uppercase;
+    line-height: 30px;
+    color: #333;
+}
+
+.homelink {
+    float: left;
+    font-size: 20px;
+    margin-right: 1em;
+}
+
+.navlink {
+    float: right;
+    font-size: 14px;
+    margin-left: 1em;
+}
+
+.entry .date {
+    float: left;
+    width: 20%;
+    color: #777;
+}
+
+.entry .post {
+    float: left;
+    width: 80%;
+}
+
+@media (max-width: 600px) {
+    .entry {
+        margin: 1em 0;
+    }
+    .entry p {
+        margin: 0;
+    }
+    .entry .date, .entry .post {
+        float: none;
+        width: 100%;
+    }
+}
+
+.entry .post a {
+    font-size: 16px;
+}
+
+.footer {
+    border-top: 1px solid #ddd;
+    margin-top: 1em;
+    color: #777;
+}
+
+.footer p {
+    text-align: center;
+}
