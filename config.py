@@ -25,3 +25,13 @@ CATEGORY_FEED_ATOM    = None
 TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM      = None
 AUTHOR_FEED_RSS       = None
+
+MARKDOWN = {
+    'extension_configs': {
+        'markdown.extensions.codehilite': {'css_class': 'highlight'},
+        'markdown.extensions.extra': {},
+        'markdown.extensions.meta': {},
+        'markdown_cjk_spacing.cjk_spacing': {},
+    },
+    'output_format': 'html5',
+}

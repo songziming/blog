@@ -12,7 +12,7 @@
             <p>
                 <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title | striptags }}</a>
                 <br>
-                {{ article.summary | striptags }}
+                {{ article.content | striptags | truncate(150) }}
             </p>
         </div>
     </article>

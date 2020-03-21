@@ -21,7 +21,7 @@ body {
     font-family: "Open Sans", "Helvetica Neue", "Segoe UI",
                  "WenQuanYi Micro Hei", "Hiragino Sans GB",
                  "Microsoft YaHei", "STXihei", "sans-serif";
-    font-size: 15px;
+    font-size: 16px;
 
     text-size-adjust: 100%;
     font-kerning: normal;
@@ -34,15 +34,57 @@ body {
     font-feature-settings: "kern" 1;
 }
 
-a {
-    text-decoration: none;
-    color: #07c;
+h1,h2,h3,h4,h5,h6, p, pre, blockquote {
+    margin: 1em 0;
+}
+
+h1 { font-size: 2.0em; }
+h2 { font-size: 1.6em; }
+h3 { font-size: 1.4em; }
+h4 { font-size: 1.2em; }
+h5 { font-size: 1.0em; }
+h6 { font-size: 1.0em; }
+h1,h2,h3,h4,h5,h6 {
+    font-weight: normal;
+    margin-bottom: 0;
 }
 
 p {
-    margin: 1em 0;
-    line-height: 1.6em;
+    line-height: 1.5em;
     text-align: justify;
+}
+
+code {
+    font-family: "Source Code Pro", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0.9em;
+}
+
+:not(pre) > code {
+    padding: 0 5px;
+    margin: 0 5px;
+    border-radius: 2px;
+    background: #f0f0f0;
+    color: #cb4b16;
+}
+
+pre {
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    overflow: hidden;
+}
+
+blockquote {
+    border-left: solid 5px #ddd;
+    padding-left: calc(2em - 5px);
+    overflow: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: #07c;
 }
 
 .wrapper {
