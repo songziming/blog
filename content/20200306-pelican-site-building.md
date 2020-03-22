@@ -47,3 +47,5 @@ theme/
 如果希望在标题中也加入中英文间隔，可以编写自己的Jinja2 filter，并且在主题模板中应用我们开发的filter。然而正文的中英文间隔，则只能改进markdown插件实现。
 
 此外还有summary长度计算的问题，默认使用单词数，对CJK不友好，Github上已经有了[Issue](https://github.com/getpelican/pelican/issues/1180)。目前还没有更好的解决方案，可以在Jinja2模板中引入`truncate`，截取文章正文前方固定长度的子串。
+
+如果希望进行更精细的定制，可以考虑开发Pelican插件，或者Markdown插件。Pelican插件就是一个普通的Python模块，其中包括一个`register()`函数，将自定义的handler关联到特定事件。

@@ -28,7 +28,7 @@ AUTHOR_FEED_RSS       = None
 
 MARKDOWN = {
     'extension_configs': {
-        'markdown.extensions.codehilite': {'css_class': 'highlight'},
+        'markdown.extensions.codehilite': { 'css_class': 'highlight' },
         'markdown.extensions.extra': {},
         'markdown.extensions.meta': {},
         'markdown_cjk_spacing.cjk_spacing': {},
