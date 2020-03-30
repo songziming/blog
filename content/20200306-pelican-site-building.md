@@ -38,7 +38,7 @@ theme/
 └── templates/
 ```
 
-其中，`static`存放css、js等静态资源，`templates`存放Jinja2模板。我们禁用了归档、分类、标签等页面，只剩下主页和文章页面两类，因此需要提供的模板只有`index.html`和`article.html`。
+其中，`static`存放css、js等静态资源，`templates`存放Jinja2模板。我们禁用了归档、分类、标签等页面，只剩下主页和文章页面两类，因此需要提供的模板只有`index.html`和`article.html`。如果希望支持draft，那么还要加上`draft.html`，否则渲染draft类型的文章就抛出异常“TypeError: can't compare offset-naive and offset-aware datetimes”。
 
 ## 定制
 
