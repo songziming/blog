@@ -1,0 +1,83 @@
+:root {
+    --color-title: #111;
+    --color-text: #333;
+    --color-line: #aaa;
+
+    --font-size: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+header, main, footer, section, article, div {
+    overflow: auto;
+}
+
+body {
+    max-width: 960px;
+    margin: auto;
+    padding: 0 15px;
+    overflow-y: scroll;
+
+    color: var(--color-text, #333);
+    font-size: var(--font-size, 14px);
+    /* font-family: "Open Sans", "Helvetica Neue", "Segoe UI",
+                 "WenQuanYi Micro Hei", "Hiragino Sans GB",
+                 "Microsoft YaHei", "STXihei", "sans-serif"; */
+
+    text-size-adjust: 100%;
+    text-rendering: geometricPrecision;
+    font-kerning: normal;
+
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+}
+
+header {
+    border-bottom: 1px solid var(--color-line, #aaa);
+    margin-bottom: 1em;
+}
+
+h1 { font-size: 1.8em; }
+h2 { font-size: 1.6em; }
+h3 { font-size: 1.4em; }
+h4 { font-size: 1.2em; }
+h5 { font-size: 1.1em; }
+h6 { font-size: 1.0em; }
+
+header h1 {
+    font-size: 2.0em;
+    color: var(--color-title, #000);
+}
+
+h1,h2,h3,h4,h5,h6 {
+    font-weight: normal;
+    line-height: 1em;
+    margin-top: 1em;
+}
+
+p {
+    line-height: 1.5em;
+    text-align: justify;
+}
+
+p,pre,ul,ol,blockquote {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+pre {
+    white-space: pre-wrap !important;
+}
+
+code {
+    font-family: 'Source Code Pro', 'Consolas', 'Courier New', Courier, monospace;
+}
+
+blockquote {
+    margin-left: 0;
+    padding-left: calc(1em - 1px);
+    border-left: 1px solid var(--color-line, #aaa);
+}

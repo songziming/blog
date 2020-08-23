@@ -1,0 +1,10 @@
+site_name: StaticNotes
+
+docs_dir: content
+site_dir: output
+
+theme:
+    name: null
+    custom_dir: 'theme/'
+
+plugins: []

@@ -1,0 +1,7 @@
+*~
+*.swp
+*.autosave
+Thumbs.db
+.DS_Store
+
+output/
