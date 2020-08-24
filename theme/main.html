@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ page.title }}</title>
     <link rel="stylesheet" type="text/css" href="/style.css">
-    <script type="text/javascript" src="/pangu.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/katex/katex.min.css">
+    <script defer type="text/javascript" src="/pangu.min.js"></script>
+    <script defer type="text/javascript" src="/katex/katex.min.js"></script>
+    <script defer type="text/javascript" src="/katex/contrib/auto-render.min.js"></script>
+    <script type="text/javascript">
+        window.onload = function() {
+            pangu.spacingNode(document.body);
+            renderMathInElement(document.body);
+        };
+    </script>
 </head>
 <body>
     <header>
@@ -15,10 +24,5 @@
         {{ page.content }}
     </main>
     <footer></footer>
-    <script type="text/javascript">
-        pangu.spacingElementByTagName('header');
-        pangu.spacingElementByTagName('main');
-        pangu.spacingElementByTagName('footer');
-    </script>
 </body>
 </html>
