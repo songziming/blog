@@ -12,7 +12,17 @@
     <script type="text/javascript">
         window.onload = function() {
             pangu.spacingNode(document.body);
-            renderMathInElement(document.body);
+            renderMathInElement(document.body, {
+                macros: {
+                    '\\\n': '\\\\'
+                },
+                delimiters: [
+                    { 'left': '$$',  right: '$$',  display: true},
+                    { 'left': '$',   right: '$',   display: false},
+                    { 'left': '\\[', right: '\\]', display: true},
+                    { 'left': '\\(', right: '\\)', display: false},
+                ]
+            });
         };
     </script>
 </head>
