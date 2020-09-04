@@ -2,6 +2,8 @@
 title: 个人知识仓库系统
 ---
 
+## 需求
+
 一直有这样的需求，但是始终没有找到合适的软件。
 
 要求：
@@ -20,11 +22,16 @@ title: 个人知识仓库系统
 
 加粗的两条是现有软件做得不好的。
 
+前面的是对软件功能的需求，除此之外，能提供下面的功能则更好：
 
+- PDF文件管理和浏览、标注（annotation），替代一部分文献管理工具
+- 只是仓库内部笔记交叉引用，自动生成引用拓扑图
+- 更好用的编辑器，自动纠错
+- 更好的中文显示，等宽（源代码）模式下宽度严格等于2英文字符，行高固定。
 
 Typora基本上满足了大部分需求，但是没有内置的绘图功能，资源管理做得也不好，必须手动维护。而且typora不开源，如果想扩展功能没法参考。
 
-
+## 具体需求点分析
 
 ### 静态资源管理
 
@@ -43,3 +50,17 @@ Notion之所以好用，主要是以block为单位进行编辑。
 如果有开源的项目，可以在其基础上扩展，加入图像hook、自定义的diagram类型block，编辑时自动跳转到内联diagram编辑器。
 
 适合在低分辨率的显示器上浏览。
+
+## Electron笔记软件设计
+
+基于Electron，使用Web技术实现一款笔记软件。
+
+electron分为server和client两个进程，界面上的逻辑都是在client实现的。如果我们希望使用Typescript，electron服务端可以直接运行ts代码，但是网页里只能是JS，因此需要首先编译。
+
+[示例项目](https://github.com/electron/electron-quick-start-typescript)在网页里同样使用Typescript，但是在package.json中加入了编译操作，执行tsc命令，根据`tsconfig.json`中的配置，将`src`目录下的每个Typescript文件转换成JS。
+
+我们不需要webpack这类的生成器，因为不需要将多个ts编译成一个JS。况且，tsc本身就支持commonjs，可以使用import语法。
+
+有可能要分出一部分任务在server进程执行，两种环境下的TS代码要明确区分。
+
+`manager`、`browser`、`common`三个目录
