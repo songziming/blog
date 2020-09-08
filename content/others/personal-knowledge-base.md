@@ -29,6 +29,8 @@ title: 个人知识仓库系统
 - 更好用的编辑器，自动纠错
 - 更好的中文显示，等宽（源代码）模式下宽度严格等于2英文字符，行高固定。
 
+OneNote这类笔记软件符合大部分功能，但显得过于复杂，而且textbox非常讨厌。这类工具使用专有格式保存笔记，无法与其他工具配合。
+
 Typora基本上满足了大部分需求，但是没有内置的绘图功能，资源管理做得也不好，必须手动维护。而且typora不开源，如果想扩展功能没法参考。
 
 ## 具体需求点分析
@@ -61,6 +63,28 @@ electron分为server和client两个进程，界面上的逻辑都是在client实
 
 我们不需要webpack这类的生成器，因为不需要将多个ts编译成一个JS。况且，tsc本身就支持commonjs，可以使用import语法。
 
-有可能要分出一部分任务在server进程执行，两种环境下的TS代码要明确区分。
+有可能要分出一部分任务在server进程执行，两种环境下的TS代码要明确区分。`manager`、`browser`、`common`三个目录，VSCode源代码就明确分成了这三个部分。
 
-`manager`、`browser`、`common`三个目录
+## 文本编辑器
+
+核心组件是一个文本编辑器，目前网上有很多开源的editor，但是必须要了解这些组件的原理，才能完美地定制。
+
+大部分editor都用到了`contenteditable`这个HTML属性，加上这个属性，HTML元素的内容就可以让用户编辑了。Notion、我来、Typora、CKEditor等软件都是使用的这个属性。但是这个属性问题很大，特别是WYSIWYG编辑器，用户选中文本之后，点击工具栏上的各种按钮来设置格式，体现到代码上，就是调用`doc.execCommand()`函数，向可编辑控件发送指令。
+
+`contenteditable`属性的历史很长，这就导致有很多历史遗留问题，对于现代编辑器开发非常不方便。
+
+vscode内置的monaco编辑器，实现方式则完全不同。在整个页面中搜索不到`contenteditable`属性，必然有一套不一样的实现手段。
+
+> [Code-Editor-Design-Doc](https://github.com/microsoft/vscode/wiki/[WIP]-Code-Editor-Design-Doc)
+
+Monaco完全是从零开始实现的，没有基于任何先有的框架，而且功能很多，针对代码编辑提供了minimap和diff-browser，并且支持搜索，支持弹出语法提示。
+
+> Model-View v.s. MVVM
+>
+> Qt使用Model-View模式，monaco使用MVVM设计，区别在于后者多了一个ViewModel，作为视图和模型之间的连接（Controller）。如果是一些简单的控件，例如RadioButton、CheckBox，它们的模型非常简单，只有一个布尔变量，这时完全可以省去VM。但是对于monaco这样复杂的控件，使用ViewModel就非常有必要了，因为model和view之间的对应关系不是那么直接的。
+
+传统native-gui-app的运行逻辑，是消息循环，更新界面的方法就是重新绘制界面。对于web-app，更新界面的方法就是修改DOM元素。我们可以认为DOM-tree就是一种新的framebuffer，浏览器就类似于video-adaptor，会帮我们将framebuffer里的数据自动转换成显示器上的图像。因此，对于web-app来说，所谓的渲染，就是生成DOM-tree，或者对于一个组件，就是生成一个子树。
+
+接收用户事件的方法也类似，web-app甚至不需要自己监听全局的消息，浏览器会帮我们完成消息在dom-tree中的冒泡，各个控件只要自己处理自己的消息即可。原生应用需要自己轮询监听消息，而且需要自己实现组件层级的消息派发。
+
+区别较大的地方是时序，以及动画。native-app有实时性要求，而且实现起来比较容易，但是在web-app中，若要实现动画效果，只能依靠css。
