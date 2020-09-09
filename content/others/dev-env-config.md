@@ -2,6 +2,33 @@
 title: 开发环境配置
 ---
 
+## 切换源
+
+由于国内网络环境，许多包管理工具都要切换到国内源才好使用.
+
+安装cnpm，方便使用淘宝源：
+
+```bash
+npm i -g cnpm --registry=https://registry.npm.taobao.org
+```
+
+设置pip使用阿里源：
+
+```bash
+pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+```
+
+设置conda使用中科大源：
+
+```bash
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/msys2/
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/bioconda/
+conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/menpo/
+```
+
 ## 修复`git diff`中文乱码
 
 执行命令：
