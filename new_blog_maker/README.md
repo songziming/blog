@@ -85,3 +85,17 @@ pandoc -f markdown -t html5 --template=template.html
 ~~~
 
 注意模板开头有json格式的元数据，输出文件里包括json和html两部分，混合在一起。但是，meta-json一定只占据一行，因此在Python代码中，使用partition函数提取第一行即可。
+
+### 利用pandoc模板？
+
+理论上，markdown转换为html片段，只输出正文部分，而不是一个完整的HTML页面。body以外的部分由我们自己配置，这就是 jinja2 模板引擎的任务。
+
+pandoc提供了模板功能，jinja2也有模板功能，使用哪一种？
+
+jinja2 更合理，因为渲染用的数据是Python代码设置的，说明这些数据还能用于别处。除了渲染单独页面，生成首页、目录页等特殊页面也需要这些信息。
+
+### 总结：从pandoc获取AST
+
+借助template和variables，将我们需要的信息直接写入生成的html片段。
+
+直接分析AST？可以用 `-t native` 或 `-t json` 生成抽象语法树，但是解析工作还要我们进行。而且这就要求同一个markdown至少转换两次，一次获得AST，另一次转换为html。
