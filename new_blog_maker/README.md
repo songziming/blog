@@ -99,3 +99,45 @@ jinja2 更合理，因为渲染用的数据是Python代码设置的，说明这�
 借助template和variables，将我们需要的信息直接写入生成的html片段。
 
 直接分析AST？可以用 `-t native` 或 `-t json` 生成抽象语法树，但是解析工作还要我们进行。而且这就要求同一个markdown至少转换两次，一次获得AST，另一次转换为html。
+
+AST是有必要的，因为还要获取一篇文章内部的目录。可以用模板中的 `$toc$` 生成目录，但这样的目录直接是 html 格式，无法进一步定制。
+
+还可以使用 beautifulsoup 解析生成的 html，
+
+### 使用 python 开发 pandoc-filter
+
+filter 可以实现自定义 block 类型，例如内嵌 graphviz、tikz
+
+什么是 filters？filter 是文档 AST 的过滤器，输入 AST，输出修改后的 AST。整体文档转换流程就是：
+
+~~~
+INPUT --reader--> AST --filter--> AST --writer--> OUTPUT
+~~~
+
+开发 filter 有两种方案：
+- lua filters，使用 pandoc 内置的虚拟机解释运行，速度较快，但只能使用 lua
+- JSON filters，输入输出的 AST 均为 JSON 格式，任何语言都可以，使用标准输入输出
+
+调用 json filter，直接用 pipe 将三个指令连起来：
+
+~~~
+pandoc -f markdown -t json source.md | \
+    ./my_filter | \
+    pandoc -f json -t html5 -o output.html
+~~~
+
+还可以使用命令行参数 --filter，效果和前一种方法一样：
+
+~~~
+pandoc -f markdown -t html5 --filter ./my_filter source.md -o output.html
+~~~
+
+手写filter当然是可以的，但使用 pandocfilters 模块提供的辅助函数会更方便。
+
+~~~py
+from pandocfilters import toJSONFilter
+
+def processNode(key, value, format, meta):
+    if key=='Header':
+        print(f'header level {value[0]}, content {value[2]}')
+~~~
