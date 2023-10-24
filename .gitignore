@@ -1,5 +1,6 @@
 # generated static site
 output/
+drafts/
 
 __pycache__/
 *.py[cod]
