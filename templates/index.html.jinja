@@ -1,0 +1,11 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+
+<p>文章列表：</p>
+
+{% for post in posts -%}
+<p><code>{{ post.date.strftime('%Y-%m-%d') }}</code> » <a href="{{ post.get_link() }}">{{ post.title }}</a></p>
+{%- endfor %}
+
+{% endblock %}

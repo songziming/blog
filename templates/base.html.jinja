@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="wrapper-full">
+            <div class="homelink-wrapper">
+                <a href="/" class="homelink">
+                    <strong>{{ site_title }}</strong>
+                </a>
+            </div>
+            {#<nav class="navlink-wrapper">
+                <a href="/archive" class="navlink">archive</a>
+                <a href="/source" class="navlink">source</a>
+            </nav>#}
+        </div>
+    </header>
+    <main class="wrapper-full">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
+

@@ -1,12 +1,6 @@
-.vscode/
-*~
-*.swp
+# generated static site
+output/
 
-site/
-.sass-cache/
-
-Thumbs.db
-.DS_Store
-
-*.pyc
 __pycache__/
+*.py[cod]
+*$py.class

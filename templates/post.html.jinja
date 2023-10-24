@@ -1,0 +1,23 @@
+{% extends "base.html.jinja" %}
+
+{% block content -%}
+
+<h1 class="article-title">{{post.title}}</h1>
+
+<div class="article-meta">
+    {% if date -%}
+        <p>日期：{{ post.date.strftime('%Y-%m-%d') }}</p>
+    {%- endif %}
+    {% if post.categories -%}
+        <p>分类：{{ '>'.join(post.categories) }}</p>
+    {%- endif %}
+    {% if post.keywords -%}
+        <p>标签：{{ '&nbsp;'.join(post.keywords) }}</p>
+    {%- endif %}
+</div>
+
+<article>
+{{ post.html }}
+</article>
+
+{%- endblock %}
