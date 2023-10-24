@@ -15,7 +15,7 @@
         <div class="wrapper-full">
             <div class="homelink-wrapper">
                 <a href="/" class="homelink">
-                    <strong>{{ site_title }}</strong>
+                    <strong>{{ site_title or title }}</strong>
                 </a>
             </div>
             {#<nav class="navlink-wrapper">
@@ -24,8 +24,10 @@
             </nav>#}
         </div>
     </header>
-    <main class="wrapper-full">
-        {% block content %}{% endblock %}
+    <main>
+        <article class="wrapper-full">
+            {% block content %}{% endblock %}
+        </article>
     </main>
 </body>
 </html>

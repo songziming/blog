@@ -53,6 +53,6 @@ ghpages -p output -r git@github.com:songziming/blog.git -d songziming.cn
 - [x] 表格样式错误
 - [x] 代码着色
 - [ ] 分析文章是否包含数学公式，决定页面是否加入 MathJax 外部引用
-- [ ] 分析正文，中英文之间添加空格，包括 inline 之间的空格
-- [ ] 对输出的 HTML 进行压缩
+- [ ] 分析正文，中英文之间添加空格，包括不同 inline 之间的空格
+- [x] 对输出的 HTML 进行压缩
 

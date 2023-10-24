@@ -85,8 +85,9 @@ a {
 .wrapper-full {
     display: block;
     overflow: auto;
-    max-width: 940px;
+    max-width: 960px;
     margin: 0 auto;
+    padding: 0 10px;
 }
 
 /*******************************************************************************

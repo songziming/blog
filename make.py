@@ -18,6 +18,7 @@ from pygments.lexers import get_lexer_by_name, guess_lexer, TextLexer
 from pygments.formatters import HtmlFormatter
 
 from jinja2 import Environment, FileSystemLoader
+from htmlmin import minify
 
 
 
@@ -130,17 +131,16 @@ def _ast_filter(key, value, format, site):
 
 
 class Site:
-    def __init__(self, title):
-        self.title  = title # 网站的标题
-        self.author = 'szm' # 作者
-        self.pages = []     # 网站的页面（非博文）
-        self.copy = []      # 哪些目录要整体拷贝到输出（例如 assets、images）
+    def __init__(self, url):
+        self.url = url
+        self.title = url # 网站的标题
+        self.pages = []     # 网站的页面（非博文非首页）
+        self.assets = []    # 哪些目录要整体拷贝到输出（例如 assets、images）
         # TODO 各种目录都可以定制（assets、posts、templates）
         # TODO 读取 site.yaml 配置文件，提取上述信息
 
-    def find_all_posts(self, posts_dir='posts'):
-        '''找出所有文章，解析其内容'''
-        # TODO 这一步可以并行
+    def add_posts_in(self, posts_dir='posts'):
+        '''找出所有文章，解析其内容，可并行'''
         mds = glob.glob(os.path.join(posts_dir, '**', '*.md'), recursive=True)
         posts = [Post(md, posts_dir) for md in mds]
         self.posts = [p for p in posts if not p.draft]
@@ -170,8 +170,7 @@ class Site:
                 p.slugified_title += f'_{i}'
 
     def filter_documents(self):
-        '''编辑每篇文章的内容，修改标题锚点，检查文章之间的链接'''
-        # TODO 这一步可以并行
+        '''编辑每篇文章的内容，修改标题锚点，检查文章之间的链接，可并行'''
         _ast_filter.filemap = {p.file:p.get_link() for p in self.posts}
         for post in self.posts:
             _ast_filter.filedir = os.path.dirname(post.file)
@@ -209,14 +208,9 @@ class Site:
             ofile = post.get_output(output_dir)
             os.makedirs(os.path.dirname(ofile), exist_ok=True)
             post.render()
-            html = tmp.render(
-                title=post.title,
-                site_title=self.title,
-                post=post
-            )
-            # print(html)
+            html = tmp.render(title=post.title, site_title=self.title, post=post)
             with open(ofile, 'w', encoding='utf-8') as f:
-                f.write(html)
+                f.write(minify(html))
 
         # 还有一些静态页面需要生成
         # TODO 静态页面也可以使用 md 或者 html，由用户决定内容
@@ -226,15 +220,15 @@ class Site:
         # 生成主页
         recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
         idx = env.get_template('index.html.jinja')
-        html = idx.render(title=self.title, site_title=self.title, posts=recents)
+        html = idx.render(title=self.title, posts=recents, now=datetime.now())
         with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
-            f.write(html)
+            f.write(minify(html))
 
 
 if '__main__' == __name__:
     # TODO 命令行参数控制是否渲染 draft
     site = Site('songziming.cn')
-    site.find_all_posts()
+    site.add_posts_in('posts')
     site.check_permalinks()
     site.filter_documents()
 

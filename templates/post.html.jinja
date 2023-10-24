@@ -5,15 +5,15 @@
 <h1 class="article-title">{{post.title}}</h1>
 
 <div class="article-meta">
-    {% if date -%}
-        <p>日期：{{ post.date.strftime('%Y-%m-%d') }}</p>
+    {% if post.date -%}
+        <p>{{ post.date.strftime('%Y-%m-%d') }}</p>
     {%- endif %}
     {% if post.categories -%}
-        <p>分类：{{ '>'.join(post.categories) }}</p>
+        <p>分类：{{ '/'.join(post.categories) }}</p>
     {%- endif %}
-    {% if post.keywords -%}
+    {#{% if post.keywords -%}
         <p>标签：{{ '&nbsp;'.join(post.keywords) }}</p>
-    {%- endif %}
+    {%- endif %}#}
 </div>
 
 <article>
