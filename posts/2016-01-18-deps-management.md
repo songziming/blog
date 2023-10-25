@@ -1,6 +1,5 @@
 ---
 title: 用 GCC 和 Makefile 自动处理依赖关系
-date: 2016-01-18
 category: dev
 keywords:
     - makefile
@@ -28,7 +27,7 @@ sample.o: sample.c header1.h header2.h
 
 最简单的方法是使用参数 `-MM`，在上面的例子中，使用命令 `gcc -MM sample.c` 就可以在终端内输出依赖列表：
 
-``` bash
+``` makefile
 sample.o: sample.c header1.h header2.h
 ```
 

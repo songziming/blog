@@ -16,8 +16,7 @@
     {%- endif %}#}
 </div>
 
-<article>
-{{ post.html }}
-</article>
+<aside class="article-side">{{ post.toc }}</aside>
+<article class="article-main">{{ post.html }}</article>
 
 {%- endblock %}

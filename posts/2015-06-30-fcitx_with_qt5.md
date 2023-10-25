@@ -1,6 +1,5 @@
 ---
-title: "让 Qt5 支持 fcitx"
-date: 2015-06-30
+title: 让 Qt5 支持 fcitx
 kind: "article"
 tags: ["qt5", "fcitx"]
 ---

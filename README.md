@@ -6,7 +6,8 @@
 
 ~~~
 conda install -c conda-forge pandoc
-pip install -U pypinyin pandocfilters Pygments Jinja2
+npm install -g csso-cli
+pip install -U pypinyin pandocfilters Pygments Jinja2 htmlmin
 ~~~
 
 # 构建静态网站
@@ -55,4 +56,7 @@ ghpages -p output -r git@github.com:songziming/blog.git -d songziming.cn
 - [ ] 分析文章是否包含数学公式，决定页面是否加入 MathJax 外部引用
 - [ ] 分析正文，中英文之间添加空格，包括不同 inline 之间的空格
 - [x] 对输出的 HTML 进行压缩
+- [ ] 修改代码块，增加行号开关，增加“全部复制”按钮
+- [ ] 开发目录显示列表，显示在侧边栏，可收起
+- [ ] 开发一套评论机制，显示在侧边栏，可收起
 

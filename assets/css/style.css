@@ -64,7 +64,7 @@ body {
 main {
     text-align: justify;
     line-height: 1.5em;
-    padding-top: 20px;
+    padding: 20px 0;
 }
 
 h1, h2, h3 { font-size: 1.3em; }
@@ -210,13 +210,14 @@ a {
     /* line-height: 1em; */
 }
 
-.article-excerpt:after {
-    content: "...";
+.article-side {
+    display: none;
 }
 
-/* .article-content {
-    line-height: 1.5em;
-} */
+.article-main {
+    display: block;
+}
+
 
 /*******************************************************************************
  * article content

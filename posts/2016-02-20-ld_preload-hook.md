@@ -1,6 +1,5 @@
 ---
 title: "使用 LD_PRELOAD 拦截库函数调用"
-date: 2016-02-20
 category: dev
 keywords:
     - Linux
@@ -68,7 +67,7 @@ libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f1da8a15000)
 
 通常进行库函数拦截是为了进行监控和统计，功能上要保持一致。因此，在假的库函数中，应该调用真的库函数完成相应功能，例如：
 
-``` c
+```c
 #include <string.h>
 size_t strlen(const char *str) {
     return real_strlen(str);
@@ -77,7 +76,7 @@ size_t strlen(const char *str) {
 
 现在的问题变成了如何确定 `real_strlen`，方法就是，通过 Linux 下的动态链接器。
 
-``` c
+```c
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
@@ -97,13 +96,13 @@ size_t strlen(const char *str) {
 
 由于这次用到了 Linux 下的动态连接器，需要在编译的时候指定 `-ldl` 选项：
 
-``` bash
+```shell
 $ gcc -shared -fPIC -ldl hook.c -o hook.so
 ```
 
 再次运行 `test` 程序，结果如下：
 
-``` bash
+```shell
 $ LD_PRELOAD=$PWD/hook.so ./test
 calling strlen.
 length is 13
@@ -113,14 +112,14 @@ length is 13
 
 上面的版本仍然有一个不足之处，那就是每次调用 `strlen` 的时候，都需要定位真正的 `strlen` 函数，实际上每次查找到的函数地址都是一样的。最适合的是动态库被加载的时候查找真正 `strlen` 函数的地址并存储下来，之后每次直接调用即可。
 
-```
+```c
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <dlfcn.h>
 
 typedef size_t (*strlen_t)(const char *str);
-strlen_t real_strlen；
+strlen_t real_strlen;
 size_t strlen(const char *str) {
     printf("calling strlen.\n");
     return real_strlen(str);

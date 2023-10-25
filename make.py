@@ -43,6 +43,10 @@ def _slugify(s):
     s = '_'.join(pypinyin.lazy_pinyin(s))
     return re.sub(r'[^a-z0-9]+', '_', s.lower())
 
+def _css_minify(css):
+    res = subprocess.run(['csso', css], capture_output=True)
+    return res.stdout.decode('utf-8')
+
 
 
 
@@ -131,13 +135,32 @@ def _ast_filter(key, value, format, site):
 
 
 class Site:
-    def __init__(self, url):
-        self.url = url
-        self.title = url # 网站的标题
+    def __init__(self, title):
+        self.title = title # 网站的标题
+        self.posts = []
         self.pages = []     # 网站的页面（非博文非首页）
-        self.assets = []    # 哪些目录要整体拷贝到输出（例如 assets、images）
+        self.assets = []    # (source, target)
+        self.env = Environment(loader=FileSystemLoader('templates'))
         # TODO 各种目录都可以定制（assets、posts、templates）
         # TODO 读取 site.yaml 配置文件，提取上述信息
+
+
+    def add_asset(self, source, target=None):
+        if target is None:
+            target = source
+        source = os.path.realpath(source)
+        if (not os.path.exists(source)) or os.path.isdir(source):
+            return
+        self.assets.append((os.path.realpath(source), target))
+
+    def copy_assets(self, output_dir):
+        for src,dst in self.assets:
+            dst = os.path.join(output_dir, dst)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            if '.css'==os.path.splitext(src)[1]:
+                open(dst, 'w').write(_css_minify(src))
+            else:
+                shutil.copy(src, dst)
 
     def add_posts_in(self, posts_dir='posts'):
         '''找出所有文章，解析其内容，可并行'''
@@ -145,16 +168,9 @@ class Site:
         posts = [Post(md, posts_dir) for md in mds]
         self.posts = [p for p in posts if not p.draft]
 
-    def show_posts(self):
-        files = [p.file for p in self.posts]
-        print('\n'.join(files))
-
-    def show_links(self):
-        links = [p.get_link() for p in self.posts]
-        print('\n'.join(links))
-
     def check_permalinks(self):
         '''分析每个文章的链接，检查有无冲突，如有冲突则根据时间编号'''
+        # TODO 不仅检查博文的目标地址，还应检查页面、静态文件、主页有无地址冲突
         get_link = lambda p: p.get_link()
         get_date = lambda p: p.date
         get_file = lambda p: p.file
@@ -176,34 +192,9 @@ class Site:
             _ast_filter.filedir = os.path.dirname(post.file)
             post.ast = pf.walk(post.ast, _ast_filter, '', self)
 
-    def render_posts(self, output_dir='output'):
+    def build_posts(self, output_dir):
         '''所有文章渲染为 html，写入输出文件'''
-
-        # 首先创建文件夹，将资源文件复制过去
-        # TODO 不要删除已有文件，分析哪些文件无需重新生成
-        os.makedirs(output_dir, exist_ok=True)
-        for sub in os.listdir(output_dir):
-            if '.git' == sub:
-                continue
-            sub = os.path.join(output_dir, sub)
-            try:
-                if os.path.isfile(sub) or os.path.islink(sub):
-                    os.unlink(sub)
-                elif os.path.isdir(sub):
-                    shutil.rmtree(sub)
-            except Exception as e:
-                print(f'cannot delete {sub}, reason {e}')
-
-        open(os.path.join(output_dir, '.nojekyll'), 'w')
-        open(os.path.join(output_dir, 'CNAME'), 'w').write('songziming.cn')
-        shutil.copytree('assets', os.path.join(output_dir, 'assets'))
-        if os.path.exists('favicon.ico'):
-            shutil.copy('favicon.ico', os.path.join(output_dir, 'favicon.ico'))
-
-        env = Environment(loader=FileSystemLoader('templates'))
-        tmp = env.get_template('post.html.jinja')
-
-        # 每一篇文章都生成页面
+        tmp = self.env.get_template('post.html.jinja')
         for post in self.posts:
             ofile = post.get_output(output_dir)
             os.makedirs(os.path.dirname(ofile), exist_ok=True)
@@ -212,25 +203,46 @@ class Site:
             with open(ofile, 'w', encoding='utf-8') as f:
                 f.write(minify(html))
 
+    def build_pages(self, output_dir):
         # 还有一些静态页面需要生成
         # TODO 静态页面也可以使用 md 或者 html，由用户决定内容
         # TODO 如果是 markdown 则使用 pandoc 解析再使用 jinja 渲染
         # TODO 如果是 html 则直接使用 jinja 渲染
+        pass
 
-        # 生成主页
+    def build_index(self, index):
         recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
-        idx = env.get_template('index.html.jinja')
+        idx = self.env.get_template('index.html.jinja')
         html = idx.render(title=self.title, posts=recents, now=datetime.now())
-        with open(os.path.join(output_dir, 'index.html'), 'w', encoding='utf-8') as f:
+        with open(index, 'w', encoding='utf-8') as f:
             f.write(minify(html))
+
+    def build(self, output_dir='output', rebuild=False):
+        if rebuild:
+            shutil.rmtree(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
+        self.copy_assets(output_dir)
+        self.build_posts(output_dir)
+        self.build_pages(output_dir)
+        self.build_index(os.path.join(output_dir, 'index.html'))
 
 
 if '__main__' == __name__:
     # TODO 命令行参数控制是否渲染 draft
     site = Site('songziming.cn')
+
+    # 指定所有输入
+    site.add_asset('CNAME')
+    site.add_asset('.nojekyll')
+    site.add_asset('favicon.ico')
+    for f in glob.glob('assets/**', recursive=True):
+        site.add_asset(f)
     site.add_posts_in('posts')
+
+    # 中间处理
     site.check_permalinks()
     site.filter_documents()
 
-    site.render_posts()
+    # 生成
+    site.build('output', True)
 

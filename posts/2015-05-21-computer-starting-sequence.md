@@ -1,6 +1,5 @@
 ---
 title: 计算机的启动过程
-date: 2015-05-21
 category: os
 keywords:
     - 硬件

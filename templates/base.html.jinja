@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/assets/css/normalize.css">
-    <link rel="stylesheet" href="/assets/css/solarized.css">
+    <link rel="stylesheet" href="/assets/css/pygments_default.css">
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
@@ -18,10 +18,12 @@
                     <strong>{{ site_title or title }}</strong>
                 </a>
             </div>
-            {#<nav class="navlink-wrapper">
-                <a href="/archive" class="navlink">archive</a>
-                <a href="/source" class="navlink">source</a>
-            </nav>#}
+            <nav class="navlink-wrapper">
+                {#<a href="/archive" class="navlink">archive</a>
+                <a href="/categories" class="navlink">categories</a>
+                <a href="/tags" class="navlink">tags</a>#}
+                <a href="https://github.com/songziming/blog" class="navlink">source</a>
+            </nav>
         </div>
     </header>
     <main>
