@@ -219,7 +219,7 @@ class Site:
 
     def build(self, output_dir='output', rebuild=False):
         if rebuild:
-            shutil.rmtree(output_dir)
+            shutil.rmtree(output_dir, ignore_errors=True)
         os.makedirs(output_dir, exist_ok=True)
         self.copy_assets(output_dir)
         self.build_posts(output_dir)
