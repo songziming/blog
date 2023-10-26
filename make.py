@@ -44,7 +44,7 @@ def _slugify(s):
     return re.sub(r'[^a-z0-9]+', '_', s.lower())
 
 def _css_minify(css):
-    res = subprocess.run(['csso', css], capture_output=True)
+    res = subprocess.run(['csso', css], shell=True, capture_output=True)
     return res.stdout.decode('utf-8')
 
 
@@ -128,6 +128,7 @@ def _ast_filter(key, value, format, site):
                 lexer = get_lexer_by_name(classes[0])
         except:
             lexer = TextLexer()
+        # return pf.RawBlock('html', highlight(code, lexer, HtmlFormatter(linenos='table')))
         return pf.RawBlock('html', highlight(code, lexer, HtmlFormatter()))
 
 

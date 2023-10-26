@@ -227,8 +227,11 @@ pre, code {
     font-family: "Source Code Pro", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    /* overflow: hidden; */
     font-size: 14px;
+
+    /* white-space: pre-wrap;
+    word-wrap: break-word; */
 }
 
 /* inline code */
@@ -242,10 +245,8 @@ code {
 /* codeblock */
 pre {
     background-color: #f0f0f0;
-    padding: 5px 10px;
-    margin: 10px 0;
-    overflow: hidden;
-    margin: 0;
+    padding: 10px;
+    overflow: auto;
 }
 
 /* .gutter {
@@ -282,29 +283,30 @@ img {
  * Table
  */
 
-table {
+table:not(.highlighttable) {
     margin: 16px auto;
     border-spacing: 0;
     border-collapse: collapse;
 }
 
-table th, table td {
+table:not(.highlighttable) th, table:not(.highlighttable) td {
     padding: 1px 10px;
     border: 1px solid #ccc;
 }
 
-table thead {
+table:not(.highlighttable) thead {
     background: #f0f0f0;
     font-weight: bold;
 }
 
-table tbody tr {
+table:not(.highlighttable) tbody tr {
     font-weight: normal;
 }
 
-table tbody tr:last-child, table tbody tr:last-child {
+table:not(.highlighttable) tbody tr:last-child, table:not(.highlighttable) tbody tr:last-child {
     border: none;
 }
+
 
 /*******************************************************************************
  * Paginator
