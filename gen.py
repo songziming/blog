@@ -1,11 +1,14 @@
 #! env python
 
 import os
+import glob
 import subprocess
 
 
 '''
 每个输出文件都是一个 Item，分多种类型，生成逻辑各不相同
+
+每个 Item 都有自己的生成管线，管线包括许多 step，每个 step 能访问不同的全局数据
 
 Item 自动判断缓存是否过期，只有过期的 Item 才需要构建，模仿 GNU Make
 
@@ -37,6 +40,14 @@ class Item:
         return []
 
 
+
+'''
+TextItem                输出一个文本文件，内容由 text() 决定
+TemplateItem(TextItem)  输出文本文件，内容是 Jinja 模板渲染生成的，输入主体 html 和数据字典
+'''
+
+
+
 # 凭空生成的文件，纯文本
 class TextItem(Item):
     def __init__(self, text=''):
@@ -61,3 +72,14 @@ class CssItem(TextItem):
     def text(self):
         res = subprocess.run(['csso', self.source])
         return res.stdout.decode()
+
+
+
+
+
+
+if '__main__' == __name__:
+    post_dir = 'posts'
+
+    post_files = glob.glob(os.path.join(post_dir, '**', '*.md'), recursive=True)
+    pass

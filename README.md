@@ -17,15 +17,6 @@ python make.py
 python -m http.server -d output
 ~~~
 
-# 发布到 Github Pages
-
-我们用的不是 jekyll，需要将生成的 `output` 文件夹提交到 gh-pages 分支。可以借助一个 NPM 模块 `gh-pages` 完成。
-
-~~~
-npm install -g gh-pages
-ghpages -p output -r git@github.com:songziming/blog.git -d songziming.cn
-~~~
-
 # 为什么自己定制一个生成器
 
 为了满足一些个性化需求：
@@ -56,6 +47,8 @@ ghpages -p output -r git@github.com:songziming/blog.git -d songziming.cn
 - [ ] 分析文章是否包含数学公式，决定页面是否加入 MathJax 外部引用
 - [ ] 分析正文，中英文之间添加空格，包括不同 inline 之间的空格
 - [x] 对输出的 HTML 进行压缩
+- [ ] 开发新的基于 Item 的生成脚本
+- [ ] 增加静态页面
 - [ ] 修改代码块，增加行号开关，增加“全部复制”按钮
 - [ ] 开发目录显示列表，显示在侧边栏，可收起
 - [ ] 开发一套评论机制，显示在侧边栏，可收起
