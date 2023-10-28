@@ -160,7 +160,10 @@ class Site:
             dst = os.path.join(output_dir, dst)
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             if '.css'==os.path.splitext(src)[1]:
-                open(dst, 'w').write(_css_minify(src))
+                with open(dst, 'w') as f:
+                    min_css = _css_minify(src)
+                    print('writing minified css', dst, 'size', len(min_css))
+                    f.write(min_css)
             else:
                 shutil.copy(src, dst)
 
