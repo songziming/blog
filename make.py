@@ -46,6 +46,7 @@ def _slugify(s):
 
 def _css_minify(css):
     res = subprocess.run(['csso', css], shell=True, capture_output=True)
+    print(css, 'csso exit', res.returncode, 'len', len(res.stdout))
     return res.stdout.decode('utf-8')
 
 
