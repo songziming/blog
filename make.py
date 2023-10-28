@@ -6,6 +6,7 @@ import glob
 import json
 import shutil
 import subprocess
+import argparse
 
 import pypinyin
 import pandocfilters as pf
@@ -163,11 +164,12 @@ class Site:
             else:
                 shutil.copy(src, dst)
 
-    def add_posts_in(self, posts_dir='posts'):
+    def add_posts_in(self, posts_dir='posts', with_drafts=False):
         '''找出所有文章，解析其内容，可并行'''
         mds = glob.glob(os.path.join(posts_dir, '**', '*.md'), recursive=True)
-        posts = [Post(md, posts_dir) for md in mds]
-        self.posts = [p for p in posts if not p.draft]
+        self.posts = [Post(md, posts_dir) for md in mds]
+        if not with_drafts:
+            self.posts = list(filter(lambda p: not p.draft, self.posts))
 
     def check_permalinks(self):
         '''分析每个文章的链接，检查有无冲突，如有冲突则根据时间编号'''
@@ -229,6 +231,10 @@ class Site:
 
 
 if '__main__' == __name__:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--draft', action='store_true', help='render draft posts')
+    args = parser.parse_args()
+
     # TODO 命令行参数控制是否渲染 draft
     site = Site('songziming.cn')
 
@@ -236,9 +242,10 @@ if '__main__' == __name__:
     site.add_asset('CNAME')
     site.add_asset('.nojekyll')
     site.add_asset('favicon.ico')
+    site.add_asset('baidu_verify_codeva-DQikY8V3QY.html')
     for f in glob.glob('assets/**', recursive=True):
         site.add_asset(f)
-    site.add_posts_in('posts')
+    site.add_posts_in('posts', with_drafts=args.draft)
 
     # 中间处理
     site.check_permalinks()

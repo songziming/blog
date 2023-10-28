@@ -1,22 +1,20 @@
 {% extends "base.html.jinja" %}
 
 {% block content -%}
-
-<h1 class="article-title">{{post.title}}</h1>
-
-<div class="article-meta">
-    {% if post.date -%}
-        <p>{{ post.date.strftime('%Y-%m-%d') }}</p>
-    {%- endif %}
-    {% if post.categories -%}
-        <p>分类：{{ '/'.join(post.categories) }}</p>
-    {%- endif %}
-    {#{% if post.keywords -%}
-        <p>标签：{{ '&nbsp;'.join(post.keywords) }}</p>
-    {%- endif %}#}
-</div>
-
-<aside class="article-side">{{ post.toc }}</aside>
-<article class="article-main">{{ post.html }}</article>
-
+<main class="wrapper-full">
+    <h1 class="article-title">{{post.title}}</h1>
+    <div class="article-meta">
+        {% if post.date -%}
+            <p>{{ post.date.strftime('%Y-%m-%d') }}</p>
+        {%- endif %}
+        {% if post.categories -%}
+            <p>分类：{{ '/'.join(post.categories) }}</p>
+        {%- endif %}
+        {#{% if post.keywords -%}
+            <p>标签：{{ '&nbsp;'.join(post.keywords) }}</p>
+        {%- endif %}#}
+    </div>
+    {{ post.html }}
+</main>
+<aside class="article-side side-toc">{{ post.toc }}</aside>
 {%- endblock %}
