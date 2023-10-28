@@ -45,12 +45,9 @@ def _slugify(s):
     return re.sub(r'[^a-z0-9]+', '_', s.lower())
 
 def _css_minify(css):
-    res = subprocess.run(['csso', css], shell=True, capture_output=True)
-    print(css, 'csso exit', res.returncode, 'len', len(res.stdout.decode('utf-8')))
-    # return res.stdout.decode('utf-8')
-    with open(css, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        return ' '.join([s.strip() for s in lines])
+    # Windows 平台下必须使用 shell 运行，因为 csso 不是可执行程序，而是一个脚本
+    res = subprocess.run(['csso', css], shell=(os.name=='nt'), capture_output=True)
+    return res.stdout.decode('utf-8')
 
 
 
@@ -133,7 +130,6 @@ def _ast_filter(key, value, format, site):
                 lexer = get_lexer_by_name(classes[0])
         except:
             lexer = TextLexer()
-        # return pf.RawBlock('html', highlight(code, lexer, HtmlFormatter(linenos='table')))
         return pf.RawBlock('html', highlight(code, lexer, HtmlFormatter()))
 
 
@@ -147,8 +143,6 @@ class Site:
         self.pages = []     # 网站的页面（非博文非首页）
         self.assets = []    # (source, target)
         self.env = Environment(loader=FileSystemLoader('templates'))
-        # TODO 各种目录都可以定制（assets、posts、templates）
-        # TODO 读取 site.yaml 配置文件，提取上述信息
 
 
     def add_asset(self, source, target=None):
@@ -166,7 +160,6 @@ class Site:
             if '.css'==os.path.splitext(src)[1]:
                 with open(dst, 'w') as f:
                     min_css = _css_minify(src)
-                    print('writing minified css', dst, 'size', len(min_css))
                     f.write(min_css)
             else:
                 shutil.copy(src, dst)
