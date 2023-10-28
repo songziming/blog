@@ -46,8 +46,11 @@ def _slugify(s):
 
 def _css_minify(css):
     res = subprocess.run(['csso', css], shell=True, capture_output=True)
-    print(css, 'csso exit', res.returncode, 'len', len(res.stdout))
-    return res.stdout.decode('utf-8')
+    print(css, 'csso exit', res.returncode, 'len', len(res.stdout.decode('utf-8')))
+    # return res.stdout.decode('utf-8')
+    with open(css, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        return ' '.join([s.strip() for s in lines])
 
 
 
