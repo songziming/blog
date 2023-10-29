@@ -238,13 +238,15 @@ if '__main__' == __name__:
     # TODO 命令行参数控制是否渲染 draft
     site = Site('songziming.cn')
 
-    # 指定所有输入
+    # 指定所有资源文件
     site.add_asset('CNAME')
     site.add_asset('.nojekyll')
     site.add_asset('favicon.ico')
     site.add_asset('baidu_verify_codeva-DQikY8V3QY.html')
     for f in glob.glob('assets/**', recursive=True):
         site.add_asset(f)
+
+    # 指定所有博文
     site.add_posts_in('posts', with_drafts=args.draft)
 
     # 中间处理
