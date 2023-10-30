@@ -45,9 +45,36 @@
     box-sizing: border-box;
 }
 
+/* 深色主体应该实现跨页面 */
+
+:root {
+    --max-width: 780px;
+    --background-color: #fff;
+    --alt-background-color: #f0f0f0; /* 标题、代码块、表格标题 */
+    --code-background-color: #f0f0f0; /* 代码块的背景色 */
+    --quote-border-color: #6D8594;
+    --quote-background-color: rgba(0, 0, 0, 0.05);
+    --splitter-color: #ddd;
+    --text-color: #111;
+    --link-color: #0e83cd;
+    --meta-color: #999;
+    --code-span-color: #cb4b16; /* 行内代码前景色 */
+}
+
+.dark {
+    --background-color: #202124;
+    --alt-background-color: #303134;
+    --quote-border-color: #f7a664;
+    --quote-background-color: rgba(255, 255, 255, 0.02);
+    --code-background-color: #1d1b1b;
+    --splitter-color: #3c4043;
+    --text-color: #e8eaed;
+    --code-span-color: #ff4689;
+}
+
 body {
-    color: #111;
-    background: #fff;
+    color: var(--text-color);
+    background: var(--background-color);
     font-size: 15px;
     font-family: "Open Sans", Arial, "Hiragino Sans GB", "Helvetica Neue", "Helvetica", "Microsoft YaHei", sans-serif;
     text-size-adjust: 100%;
@@ -62,6 +89,10 @@ body {
     text-align: justify;
 }
 
+main {
+    margin: 20px 0;
+}
+
 h1 { font-size: 1.5em; }
 h2 { font-size: 1.4em; }
 h3 { font-size: 1.3em; }
@@ -72,8 +103,14 @@ p { margin: 1em 0; }
 
 a {
     text-decoration: none;
-    color: #0e83cd;
+    color: var(--link-color);
 }
+
+ul, ol {
+    padding-left: 30px;
+}
+
+
 
 /*******************************************************************************
  * layout
@@ -84,7 +121,7 @@ a {
 .wrapper-full {
     display: block;
     overflow: auto;
-    max-width: 960px;
+    max-width: var(--max-width);
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -94,16 +131,16 @@ a {
     top: 0;
     right: 0;
     bottom: 0;
-    width: calc(50% - 480px);
+    width: calc(50% - var(--max-width) / 2);
     padding-top: 70px; /* 跳过标题栏的高度*/
-    border-left: 1px solid #ddd;
+    border-left: 1px solid var(--splitter-color);
     overflow-y: auto;
 }
 
-/* 如果屏幕宽度小于 1300，就不显示侧边目录，否则宽度不够 */
-@media only screen and (max-width: 1300px) {
+/* 如果屏幕宽度小于 1100，就不显示侧边目录，否则宽度不够 */
+@media only screen and (max-width: 1100px) {
     .article-side {
-        display: hidden;
+        display: none;
     }
 }
 
@@ -133,12 +170,11 @@ a {
  */
 
 .header {
-    background: #f0f0f0;
-    border-bottom: 1px solid #ddd;
+    background: var(--alt-background-color);
+    border-bottom: 1px solid var(--splitter-color);
     padding: 10px 0;
     position: relative;
     z-index: 100;
-    margin-bottom: 20px;
 }
 
 .homelink-wrapper {
@@ -152,7 +188,7 @@ a {
 .homelink, .navlink {
     text-transform: uppercase;
     line-height: 44px;
-    color: #333;
+    color: var(--text-color);
     position: relative;
 }
 
@@ -172,7 +208,7 @@ a {
     width: 100%;
     bottom: 0;
     left: 0;
-    background-color: #333;
+    background-color: var(--text-color);
     visibility: hidden;
 
     -webkit-transform: scaleX(0);
@@ -202,6 +238,15 @@ a {
     transform: scaleX(1);
 }
 
+.navbutton {
+    border: none;
+    cursor: pointer;
+    margin-left: 16px;
+    vertical-align: middle;
+    background: transparent;
+    fill: var(--text-color);
+}
+
 
 /*******************************************************************************
  * article text
@@ -224,7 +269,7 @@ a {
 .article-title {
     font-size: 28px;
     line-height: 1em;
-    color: #333;
+    /* color: #333; */
     /* margin: 12px 0; */
 }
 
@@ -243,13 +288,12 @@ a {
     margin: 30px 0;
     font-size: 14px;
     padding: 0;
-    color: #999;
+    color: var(--meta-color);
 }
 
-.article-meta > p {
+/* .article-meta > p {
     margin: 0;
-    /* line-height: 1em; */
-}
+} */
 
 
 /*******************************************************************************
@@ -260,51 +304,38 @@ pre, code {
     font-family: "Source Code Pro", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     margin: 0;
     padding: 0;
-    /* overflow: hidden; */
     font-size: 14px;
-
-    /* white-space: pre-wrap;
-    word-wrap: break-word; */
 }
 
 /* inline code */
 code {
     padding: 0 2px;
     border-radius: 2px;
-    background: #f0f0f0;
-    color: #cb4b16;
+    background: var(--code-background-color);
+    color: var(--code-span-color);
 }
 
 /* codeblock */
 pre {
-    background-color: #f0f0f0;
-    padding: 10px;
+    background-color: var(--code-background-color);
+    padding: 10px 15px;
     overflow: auto;
+    line-height: 1.5em;
 }
-
-/* .gutter {
-    color: #586e75;
-    min-width: 30px;
-    padding: 5px 0px 5px 10px;
-}
-
-.code {
-    width: 100%;
-    padding: 5px 25px 5px 25px;
-} */
 
 blockquote {
     margin: 10px 0;
-    padding: 1px 10px;
-    border-left: solid 2px #6D8594;
-    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0 15px;
+    overflow: auto;
+    border-left: solid 3px var(--quote-border-color);
+    background-color: var(--quote-background-color);
 }
 
 hr {
     margin: 20px 0;
     padding: 0;
     border: none;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--splitter-color);
 }
 
 img {
@@ -331,11 +362,11 @@ table:not(.highlighttable) {
 
 table:not(.highlighttable) th, table:not(.highlighttable) td {
     padding: 1px 10px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--splitter-color);
 }
 
 table:not(.highlighttable) thead {
-    background: #f0f0f0;
+    background: var(--alt-background-color);
     font-weight: bold;
 }
 
@@ -362,8 +393,8 @@ table:not(.highlighttable) tbody tr:last-child, table:not(.highlighttable) tbody
 
 .page-nav a:hover {
     text-decoration: none;
-    background: #000;
-    color: #fff;
+    background: var(--text-color);
+    color: var(--background-color);
 }
 
 .page-number {

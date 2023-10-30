@@ -8,6 +8,7 @@
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/assets/css/normalize.css">
     <link rel="stylesheet" href="/assets/css/pygments_default.css">
+    <link rel="stylesheet" href="/assets/css/pygments_fruity.css">
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
@@ -23,10 +24,40 @@
                 <a href="/categories" class="navlink">categories</a>
                 <a href="/tags" class="navlink">tags</a>#}
                 <a href="https://github.com/songziming/blog" class="navlink">source</a>
+                <button class="navbutton" type="button" onclick="toggleColor()" aria-label="toggle dark mode">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:24px;">
+<path d="M20 15.31L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69zM12 18V6c3.31 0 6 2.69 6 6s-2.69 6-6 6z"/>
+</svg>
+</button>
             </nav>
         </div>
     </header>
-    {% block content %}{% endblock %}
+    <main>
+        <div class="wrapper-full">
+            {% block content %}{% endblock %}
+        </div>
+        {% block toc %}{% endblock %}
+    </main>
+    <script type="text/javascript">
+var theme = localStorage.getItem("theme");
+if (null === theme) {
+    var media = window.matchMedia('(prefers-color-scheme: dark)');
+    if (media.matches) {
+        document.body.classList.add('dark');
+    }
+} else if (localStorage.getItem("theme") == "dark") {
+    document.body.classList.add("dark");
+}
+
+function toggleColor() {
+    document.body.classList.toggle("dark");
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+    } else {
+        localStorage.setItem("theme", "light");
+    }
+}
+    </script>
 </body>
 </html>
 
