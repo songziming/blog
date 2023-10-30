@@ -1,12 +1,10 @@
 {% extends "base.html.jinja" %}
 
 {% block content %}
-<main class="wrapper-full">
-    <p>文章列表：</p>
-    {% for post in posts -%}
-        <p><code>{{ post.date.strftime('%Y-%m-%d') }}</code> » <a href="{{ post.get_link() }}">{{ post.title }}</a></p>
-    {%- endfor %}
-    <hr/>
-    <p>生成于 {{ now.strftime('%Y-%m-%d %H:%M:%S') }}, {{ now.astimezone().tzname() }}</p>
-</main>
+<p>文章列表：</p>
+{% for post in posts -%}
+    <p><code>{{ post.date.strftime('%Y-%m-%d') }}</code> » <a href="{{ post.get_link() }}">{{ post.title }}</a></p>
+{%- endfor %}
+<hr/>
+<p>生成于 {{ now.strftime('%Y-%m-%d %H:%M:%S') }} {{ now.astimezone().tzname() }}</p>
 {% endblock %}
