@@ -8,6 +8,7 @@
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/assets/css/normalize.css">
     <link rel="stylesheet" href="/assets/css/pygments_default.css">
+    <link rel="stylesheet" href="/assets/css/pygments_fruity.css">
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
@@ -38,9 +39,24 @@
         {% block toc %}{% endblock %}
     </main>
     <script type="text/javascript">
-        function toggleColor() {
-            document.body.classList.toggle("dark");
-        }
+var theme = localStorage.getItem("theme");
+if (null === theme) {
+    var media = window.matchMedia('(prefers-color-scheme: dark)');
+    if (media.matches) {
+        document.body.classList.add('dark');
+    }
+} else if (localStorage.getItem("theme") == "dark") {
+    document.body.classList.add("dark");
+}
+
+function toggleColor() {
+    document.body.classList.toggle("dark");
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+    } else {
+        localStorage.setItem("theme", "light");
+    }
+}
     </script>
 </body>
 </html>

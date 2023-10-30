@@ -51,6 +51,7 @@
     --max-width: 780px;
     --background-color: #fff;
     --alt-background-color: #f0f0f0; /* 标题、代码块、表格标题 */
+    --code-background-color: #f0f0f0; /* 代码块的背景色 */
     --quote-border-color: #6D8594;
     --quote-background-color: rgba(0, 0, 0, 0.05);
     --splitter-color: #ddd;
@@ -63,10 +64,12 @@
 .dark {
     --background-color: #202124;
     --alt-background-color: #303134;
-    --quote-border-color: #6D8594;
+    --quote-border-color: #f7a664;
     --quote-background-color: rgba(255, 255, 255, 0.02);
+    --code-background-color: #1d1b1b;
     --splitter-color: #3c4043;
     --text-color: #e8eaed;
+    --code-span-color: #ff4689;
 }
 
 body {
@@ -102,6 +105,12 @@ a {
     text-decoration: none;
     color: var(--link-color);
 }
+
+ul, ol {
+    padding-left: 30px;
+}
+
+
 
 /*******************************************************************************
  * layout
@@ -232,7 +241,10 @@ a {
 .navbutton {
     border: none;
     cursor: pointer;
+    margin-left: 16px;
     vertical-align: middle;
+    background: transparent;
+    fill: var(--text-color);
 }
 
 
@@ -279,10 +291,9 @@ a {
     color: var(--meta-color);
 }
 
-.article-meta > p {
+/* .article-meta > p {
     margin: 0;
-    /* line-height: 1em; */
-}
+} */
 
 
 /*******************************************************************************
@@ -293,43 +304,30 @@ pre, code {
     font-family: "Source Code Pro", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     margin: 0;
     padding: 0;
-    /* overflow: hidden; */
     font-size: 14px;
-
-    /* white-space: pre-wrap;
-    word-wrap: break-word; */
 }
 
 /* inline code */
 code {
     padding: 0 2px;
     border-radius: 2px;
-    background: var(--alt-background-color);
+    background: var(--code-background-color);
     color: var(--code-span-color);
 }
 
 /* codeblock */
 pre {
-    background-color: var(--alt-background-color);
-    padding: 10px;
+    background-color: var(--code-background-color);
+    padding: 10px 15px;
     overflow: auto;
+    line-height: 1.5em;
 }
-
-/* .gutter {
-    color: #586e75;
-    min-width: 30px;
-    padding: 5px 0px 5px 10px;
-}
-
-.code {
-    width: 100%;
-    padding: 5px 25px 5px 25px;
-} */
 
 blockquote {
     margin: 10px 0;
-    padding: 1px 10px;
-    border-left: solid 2px var(--quote-border-color);
+    padding: 0 15px;
+    overflow: auto;
+    border-left: solid 3px var(--quote-border-color);
     background-color: var(--quote-background-color);
 }
 
