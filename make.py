@@ -239,12 +239,8 @@ if '__main__' == __name__:
     site = Site('songziming.cn')
 
     # 指定所有资源文件
-    site.add_asset('CNAME')
-    site.add_asset('.nojekyll')
-    site.add_asset('favicon.ico')
-    site.add_asset('baidu_verify_codeva-DQikY8V3QY.html')
-    for f in glob.glob('assets/**', recursive=True):
-        site.add_asset(f)
+    for a in filter(os.path.isfile, glob.glob('assets/**', recursive=True)):
+        site.add_asset(a, os.path.relpath(a, 'assets'))
 
     # 指定所有博文
     site.add_posts_in('posts', with_drafts=args.draft)
