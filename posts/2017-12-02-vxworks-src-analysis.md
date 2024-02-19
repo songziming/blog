@@ -205,6 +205,49 @@ VxWorks 区分了两种不同的陷阱，即中断和异常。二者的主要区
 - 异常栈（Exception Stack），当异常发生时候切换到这个栈并运行 ISR。理论上，异常处理程序完全可以在执行栈上运行，但有栈溢出的风险，因为初始栈指针位置不确定。异常栈也是每个任务一份，因此当一个任务正在执行异常处理代码的时候，也是可以进行任务切换的。
 - 中断栈（Interrupt Stack），当中断发生的时候，ISR 会切换到这个栈，并执行相应的中断处理函数。中断栈并不是每个任务一份，而是每个 CPU 一份，因此中断上下文不属于任何任务。每次从中断返回的时候，有可能进行调度和任务切换。
 
+如无特殊说明，提到“栈”，指的就是执行栈。
+
 每个任务都拥有自己的执行栈和异常栈，当一个任务处于运行状态时，它有可能正在运行栈上执行业务代码，也有可能在异常栈上处理异常，这两种状态都属于运行状态。运行状态下，如果产生中断，任务的当前上下文（PC、SP 以及其他寄存器）会被保存到当前栈（运行栈或者异常栈）上，切换到中断栈，执行中断处理代码。
 
 在中断即将返回的时候，VxWorks 会检查目前是否需要执行调度和任务切换（RoundRobin 情况）。例如中断之前正在运行任务 A，中断之后需要切换到任务 B，那么我们在完成中断返回前，并不会从中断栈切换回任务 A 的运行/异常栈，而是切换到任务 B 的运行/异常栈。
+
+* * *
+
+# 多核支持
+
+## Per-CPU Variables
+
+VxWorks 不能运行时动态获取 CPU 数量，而是编译时指定。这样分配 per-CPU var 非常简单，只要把相关变量放在结构体中，有多少个 CPU，就声明多少个结构体变量。
+
+perCPU 变量数组 `vxKernelVars`，定义在 `src/wind/kernelData.c` 文件中。结构体类型为 WIND_VARS，定义在 h/private/windLibP.h。
+
+`h/private/windLibP.h` 提供了许多宏，用来访问 vxKernelVars 成员，如：
+
+- _WRS_KERNEL_CPU_GLOBAL_OR
+- _WRS_KERNEL_CPU_GLOBAL_SET
+
+## 自旋锁
+
+VxWorks 使用自旋锁很大胆，根本不担心影响性能。而且 VxWorks 自旋锁是严格先到先得，以便获得确定性。
+
+VxWorks 有一个全局锁 `kernelStateLock`，位于文件 `src/os/lock/kernelLockLib.c`。这个锁的结构如下（经过了简化）：
+
+~~~
+struct vxKernelLock {
+    atomic_t ticket_counter;
+    atomic_t service_counter;
+};
+~~~
+
+获取自旋锁的过程：
+- atomic fetch `ticket_counter` and add one, original value is `ticket`
+- spin while `service_counter != ticket`
+
+释放自旋锁的过程：
+- atomic add one to `service_counter`
+
+这种锁可以类比银行柜台取号：
+- 用户在取号机取号，取到的号记作 `ticket`，同时取号机（下一个号）的数字加一。取号机便对应 `ticket_counter`。
+- 只有一个服务窗口，窗口上方显示正在处理哪个编号的客户，对应 `service_counter`。
+- 每个用户不断关注窗口上方的数字，一旦与自己手上的 `ticket` 一致，就坐到窗口前，表示得到了自旋锁。否则一直等待，即自旋。
+- 拥有锁的用户完成了工作，准备释放锁，只需让窗口上方的数字加一。
