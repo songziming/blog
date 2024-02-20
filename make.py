@@ -1,5 +1,9 @@
 #! env python
 
+'''
+静态网站生成器
+'''
+
 import os
 import re
 import glob

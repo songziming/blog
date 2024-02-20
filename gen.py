@@ -1,5 +1,9 @@
 #! env python
 
+'''
+静态网站生成器 2.0 (WIP)
+'''
+
 import os
 import glob
 import subprocess
