@@ -15,3 +15,7 @@ body {
   right: 0;
   overflow: hidden;
 }
+
+.node_unselect {
+  pointer-events: none;
+}
