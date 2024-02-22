@@ -26,6 +26,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
       - name: Install pandoc
         run: sudo apt-get install pandoc
       - name: Install npm packages
@@ -34,6 +39,10 @@ jobs:
         run: python -m pip install pypinyin pandocfilters Pygments Jinja2 htmlmin
       - name: Generate website
         run: python make.py
+      - run: npm install
+        working-directory: apps/zupu
+      - run: npm run build
+        working-directory: apps/zupu
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact

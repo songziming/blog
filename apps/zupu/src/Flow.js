@@ -1,18 +1,18 @@
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { UserOutlined } from '@ant-design/icons';
-import { Layout, Flex, Button, Space, Input, Switch, ConfigProvider, Modal, notification } from 'antd';
+import { Layout, Flex, Button, Input, Modal, notification } from 'antd';
 
 import ReactFlow, {
-    ReactFlowProvider, useReactFlow,
+    // ReactFlowProvider, useReactFlow,
     Background, Controls, MiniMap,
-    applyNodeChanges,
-    applyEdgeChanges,
-    addEdge,
-    Handle,
+    useNodesState, useEdgesState,
     Position,
+    addEdge, getConnectedEdges, getNodesBounds, getViewportForBounds,
 } from 'reactflow';
 
+import { toPng } from 'html-to-image';
+
+import PersonNode from './FlowNode';
 import DeletableEdge from './FlowEdge';
 
 
@@ -21,80 +21,16 @@ import 'reactflow/dist/style.css';
 
 
 
-// 默认主题色是蓝色，代表男，把 disable 颜色设为粉色，代表女
-const GenderSwitch = ({gender, onChangeGender}) => {
-    return <ConfigProvider theme={{
-        token: {
-            colorTextQuaternary: '#ffa39e',  // switch disabled
-            colorTextTertiary: '#ffccc7',  // switch disabled hover
-        }
-    }}>
-        <Switch className="nodrag" checkedChildren="男" unCheckedChildren="女"
-            checked={gender} onChange={onChangeGender} />
-    </ConfigProvider>;
-};
-
-
-
-// 自定义节点，表示一个人
-// 左端口连接父母，右端口连接子女
-// 可以直接在节点上编辑姓名、性别、备注信息
-const PersonNode = ({id, data, selected}) => {
-    const flow = useReactFlow();
-
-    const onChangeGender = useCallback((checked) => {
-        flow.setNodes((nodes) => nodes.map(
-            (node) => ((id === node.id) ? {
-                ...node,
-                data: { ...node.data, gender: checked },
-            }: node)
-        ));
-    }, []);
-
-    const onRename = useCallback((e) => {
-        flow.setNodes((nodes) => nodes.map(
-            (node) => ((id === node.id) ? {
-                ...node,
-                data: { ...node.data, name: e.target.value },
-            }: node)
-        ));
-    }, []);
-
-    // 姓名输入框和性别按钮不能拖动，必须留出足够的可拖拽面积
-    return <div style={{
-        padding: '5px 10px',
-        width: '160px', // 根据输入的姓名自动调整宽度？
-        backgroundColor: 'white',
-        borderRadius: '3px',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: selected ? 'red' : '#1a192b',
-        boxShadow: selected ? '0 0 0 0.5px red' : null,
-    }}>
-        <Space align="center">
-            <UserOutlined />
-            <Input className="nodrag" size="small" variant="filled" placeholder="姓名" defaultValue={data.name} onChange={onRename} />
-            <GenderSwitch gender={data.gender} onChangeGender={onChangeGender} />
-        </Space>
-        <Handle type="target" position={Position.Left} />
-        <Handle type="source" position={Position.Right} />
-    </div>;
-};
-
 
 
 // node type、edge type 需要定义在组件外部，否则每次渲染都会创建新的 type
 const nodeTypes = {
     person: PersonNode
 };
+
 const edgeTypes = {
     'deletable-edge': DeletableEdge,
 };
-
-
-
-
-
 
 // default、input、output 类型的 node 会使用这些属性
 const nodeDefaults = {
@@ -102,7 +38,6 @@ const nodeDefaults = {
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
 };
-
 
 const edgeOptions = {
     style: {
@@ -114,18 +49,27 @@ const edgeOptions = {
 
 
 
+const downloadImage = (dataUrl) => {
+    const a = document.createElement('a');
+
+    a.setAttribute('download', 'reactflow.png');
+    a.setAttribute('href', dataUrl);
+    a.click();
+};
 
 
-const FlowView = () => {
-    const [nodes, setNodes] = useState([]);
-    const [edges, setEdges] = useState([]);
 
-    const onNodesChange = useCallback((changes) => {
-        setNodes((nds) => applyNodeChanges(changes, nds));
-    }, []);
-    const onEdgesChange = useCallback((changes) => {
-        setEdges((eds) => applyEdgeChanges(changes, eds));
-    }, []);
+
+const FlowApp = () => {
+    const [modalOpen, setModalOpen] = useState(false);
+    const [api, contextHolder] = notification.useNotification();
+
+    const maxId = useRef(0);
+    const loadText = useRef('');
+
+    const [nodes, setNodes, onNodesChange] = useNodesState([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
 
     // 用户建立节点间连接时调用
     const onConnect = useCallback((params) => {
@@ -138,57 +82,38 @@ const FlowView = () => {
             type: 'deletable-edge'
         };
         setEdges((eds) => addEdge(edge, eds));
-    }, []);
+    }, [setEdges]);
 
-    return <div style={{ height: '100%' }}>
-        <ReactFlow
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            defaultEdgeOptions={edgeOptions}
-            fitView
-            attributionPosition="bottom-left"
-            snapToGrid
-            snapGrid={[10,10]}
-        >
-            <Background />
-            <Controls />
-            <MiniMap zoomable pannable style={{ height: 120 }} />
-        </ReactFlow>
-    </div>
-};
+    const onCreateNode = useCallback(() => {
+        setNodes(nds => nds.concat({
+            id: `${++maxId.current}`,
+            position: { x: 50, y: 50 },
+            data: { name: '张三', gender: true },
+            ...nodeDefaults,
+        }));
+    }, [setNodes]);
 
-const FlowApp = () => {
-    const [modalOpen, setModalOpen] = useState(false);
-    const [api, contextHolder] = notification.useNotification();
-
-    // const box = useRef(null);
-    const loadText = useRef('');
-
-    const flow = useReactFlow();
-
-    const nodeId = useRef(0);
+    const onRemoveNode = useCallback(() => {
+        const selNodes = nodes.filter(node => node.selected);
+        const selEdges = getConnectedEdges(selNodes, edges);
+        setEdges(edges.filter(e => !selEdges.includes(e)));
+        setNodes(nodes.filter(v => !v.selected));
+    }, [nodes, edges, setNodes, setEdges]);
 
     // 我们只关注node、edge 有限的属性
     const onSave = useCallback(() => {
-        const nodes = flow.getNodes().map((node) => ({
-            id: node.id,
-            data: node.data,
-            position: node.position,
-        }));
-        const edges = flow.getEdges().map((edge) => ({
-            id: edge.id,
-            source: edge.source,
-            target: edge.target,
-        }));
         let data = {
-            nodes,
-            edges,
-            next: nodeId.current,
+            nodes: nodes.map(node => ({
+                id: node.id,
+                data: node.data,
+                position: node.position,
+            })),
+            edges: edges.map(edge => ({
+                id: edge.id,
+                source: edge.source,
+                target: edge.target,
+            })),
+            maxId: maxId.current,
         };
         const str = JSON.stringify(data);
         console.log(str);
@@ -197,7 +122,7 @@ const FlowApp = () => {
             message: '已保存到剪贴板',
             placement: 'topRight',
         });
-    }, []);
+    }, [api, nodes, edges]);
 
     const onLoad = useCallback(() => {
         setModalOpen(true);
@@ -213,11 +138,11 @@ const FlowApp = () => {
         let data;
         try {
             data = JSON.parse(loadText.current);
-            nodeId.current = data['next'];
-            flow.setNodes(
+            maxId.current = data['maxId'];
+            setNodes(
                 data['nodes'].map(node => ({ ...node, ...nodeDefaults })
             ));
-            flow.setEdges(
+            setEdges(
                 data['edges'].map(edge => ({ ...edge, type: 'deletable-edge' })
             ));
         } catch (e) {
@@ -229,21 +154,26 @@ const FlowApp = () => {
         }
     };
 
-    const onCreateNode = useCallback(() => {
-        flow.addNodes({
-            id: `${++nodeId.current}`,
-            position: { x: 50, y: 50 },
-            data: { name: '张三', gender: true },
-            ...nodeDefaults,
-        });
-    }, []);
+    // 导出 png 并下载（提高分辨率）
+    const onExport = useCallback(() => {
+        const bounds = getNodesBounds(nodes);
+        const im_width = bounds.width * 4;
+        const im_height = bounds.height * 4;
+        console.log(bounds);
+        const transform = getViewportForBounds(bounds, im_width, im_height, 0.5, 8);
 
-    // const notify = (msg) => {
-    //     api.info({
-    //         message: msg,
-    //         placement: 'topRight',
-    //     })
-    // };
+        toPng(document.querySelector('.react-flow__viewport'), {
+            backgroundColor: '#fff',
+            width: im_width,
+            height: im_height,
+            style: {
+                width: im_width,
+                height: im_height,
+                transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+            },
+        }).then(downloadImage);
+    }, [nodes]);
+
 
     return <Layout style={{ height: '100%' }}>
         {contextHolder}
@@ -256,16 +186,33 @@ const FlowApp = () => {
             <Flex gap="small" wrap="wrap">
                 <Button onClick={onSave}>保存</Button>
                 <Button onClick={onLoad}>打开</Button>
-                <Button onClick={onCreateNode}>新建节点</Button>
+                <Button onClick={onCreateNode}>新建</Button>
+                <Button onClick={onRemoveNode}>删除</Button>
+                <Button onClick={onExport}>导出</Button>
             </Flex>
         </Layout.Header>
         <Layout.Content>
-            <FlowView/>
+            <ReactFlow
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                defaultEdgeOptions={edgeOptions}
+                fitView
+                attributionPosition="bottom-left"
+                snapToGrid
+                snapGrid={[10,10]}
+            >
+                <Background gap={10} />
+                <Controls />
+                <MiniMap zoomable pannable style={{ height: 120 }} />
+            </ReactFlow>
         </Layout.Content>
     </Layout>;
 };
 
 
-export default () => <ReactFlowProvider>
-    <FlowApp />
-</ReactFlowProvider>;
+export default FlowApp;
