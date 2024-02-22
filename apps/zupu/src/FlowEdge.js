@@ -4,47 +4,32 @@
 import {
     BaseEdge,
     EdgeLabelRenderer,
-    getStraightPath,
-    getSmoothStepPath,
     getSimpleBezierPath,
     Position,
     useReactFlow,
 } from 'reactflow';
 
-const DeletableEdge = ({ id, sourceX, sourceY, targetX, targetY }) => {
+const DeletableEdge = ({ id, sourceX, sourceY, targetX, targetY, selected }) => {
     const { setEdges } = useReactFlow();
-    // const [edgePath, labelX, labelY] = getStraightPath({
-    //     sourceX,
-    //     sourceY,
-    //     targetX,
-    //     targetY,
-    // });
+
     const [edgePath, labelX, labelY] = getSimpleBezierPath({
-        sourceX,
-        sourceY,
-        sourcePosition: Position.Right,
-        targetX,
-        targetY,
-        targetPosition: Position.Left,
-      });
+        sourceX, sourceY, sourcePosition: Position.Right,
+        targetX, targetY, targetPosition: Position.Left,
+    });
 
     return <>
         <BaseEdge id={id} path={edgePath} />
-        <EdgeLabelRenderer>
-        <button
-            style={{
-                position: 'absolute',
-                transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                pointerEvents: 'all',
-            }}
-            className="nodrag nopan"
-            onClick={() => {
-                setEdges((es) => es.filter((e) => e.id !== id));
-            }}
-        >
-            delete
-        </button>
-        </EdgeLabelRenderer>
+        {selected && <EdgeLabelRenderer>
+            <button className="nodrag nopan" style={{
+                    position: 'absolute',
+                    transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+                    pointerEvents: 'all',
+                }}
+                onClick={() => {
+                    setEdges((es) => es.filter((e) => e.id !== id));
+                }}
+            >X</button>
+        </EdgeLabelRenderer> }
     </>;
 };
 
