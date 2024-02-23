@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from "react";
 import { Layout, Flex, Button, Input, Modal, notification } from 'antd';
 
 import ReactFlow, {
-    // ReactFlowProvider, useReactFlow,
     Background, Controls, MiniMap,
     useNodesState, useEdgesState,
     Position,
@@ -49,17 +48,6 @@ const edgeOptions = {
 
 
 
-const downloadImage = (dataUrl) => {
-    const a = document.createElement('a');
-
-    a.setAttribute('download', 'reactflow.png');
-    a.setAttribute('href', dataUrl);
-    a.click();
-};
-
-
-
-
 const FlowApp = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [api, contextHolder] = notification.useNotification();
@@ -69,7 +57,6 @@ const FlowApp = () => {
 
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
 
     // 用户建立节点间连接时调用
     const onConnect = useCallback((params) => {
@@ -171,7 +158,12 @@ const FlowApp = () => {
                 height: im_height,
                 transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
             },
-        }).then(downloadImage);
+        }).then(url => {
+            const a = document.createElement('a');
+            a.setAttribute('download', 'reactflow.png');
+            a.setAttribute('href', url);
+            a.click();
+        });
     }, [nodes]);
 
 
@@ -183,6 +175,12 @@ const FlowApp = () => {
             }} />
         </Modal>
         <Layout.Header style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+                marginRight: 20,
+                color: '#fff',
+                fontSize: 24,
+                fontWeight: 600,
+            }}>族谱编辑器</div>
             <Flex gap="small" wrap="wrap">
                 <Button onClick={onSave}>保存</Button>
                 <Button onClick={onLoad}>打开</Button>
