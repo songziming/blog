@@ -8,7 +8,12 @@
 } */
 
 
-.editor {
+[contenteditable]:focus {
+  outline: none;
+}
+
+
+.fullscreen {
   position: absolute;
   top: 10px;
   left: 10px;

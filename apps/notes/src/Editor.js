@@ -17,7 +17,7 @@ const atomById = memoize(uuid => atom({
 
 // 代表一个段落级元素，如：标题、正文、表格、图片
 const ParaBlock = ({uuid}) => {
-  const [state, setState] = useRecoilState(atomById(uuid));
+  const [state] = useRecoilState(atomById(uuid));
   return (
     <p className="para">{state.text}</p>
   );
@@ -26,7 +26,7 @@ const ParaBlock = ({uuid}) => {
 const Editor = () => {
   return (
     <RecoilRoot>
-      <div className="editor">
+      <div className="fullscreen">
         <ParaBlock uuid='123' />
         <ParaBlock uuid='456' />
         <p className="para">Hello, world!</p>
