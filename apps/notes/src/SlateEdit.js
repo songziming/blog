@@ -4,7 +4,7 @@ import { createEditor, Transforms, Editor, Element } from 'slate';
 import { Slate, Editable, withReact } from 'slate-react';
 import { useCallback, useState, useMemo } from 'react';
 
-import SlateCode from './SlateCode';
+import { SlateCodeBlock, SlateCodeLine } from './SlateCode';
 
 import './Editor.css';
 
@@ -34,12 +34,34 @@ const MyEditor = {
 
   toggleCode: (editor) => {
     const [match] = Editor.nodes(editor, {
-      match: n => n.type === 'code',
+      match: n => n.type === 'codeblock',
     });
-    Transforms.setNodes(editor,
-      { type: match ? 'paragraph' : 'code' },
-      { match: n => Element.isElement(n) && Editor.isBlock(editor, n) }
-    );
+
+    if (!match) {
+      // 将文本包一层 codeblock
+      Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
+        match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
+        split: true,
+      });
+      // 变成 codeline
+      Transforms.setNodes(editor, { type: 'codeline' }, {
+        match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
+      });
+      // 去掉样式
+      Transforms.setNodes(editor, { bold: false }, {
+        match: n => !Element.isElement(n)
+      });
+    } else {
+      // 将 codeblock 拆开
+      Transforms.unwrapNodes(editor, {
+        match: n => Element.isElement(n) && n.type === 'codeblock'
+      });
+      // 里面的 codeline 换成普通段落
+      Transforms.setNodes(editor,
+        { type: 'paragraph' },
+        { match: n => Element.isElement(n) && n.type === 'codeline' }
+      );
+    }
   },
 
   // 获取当前代码块的高亮语言
@@ -64,33 +86,6 @@ const MyEditor = {
 
 
 
-// // 代码块
-// const CodeElement = ({element, attributes, children}) => {
-//   const editor = useSlateStatic();
-
-//   const handleChangeLang = useCallback(e => {
-//     const lang = e.target.value;
-//     // console.log('setting language to', lang);
-
-//     const path = ReactEditor.findPath(editor, element);
-//     Transforms.setNodes(editor, { lang }, { at: path });
-//   }, [editor]);
-
-//   console.log(element);
-
-//   return <div className="para" {...attributes}>
-//     <div className="code-toolbar none-edit" contentEditable={false}>
-//     <label htmlFor="lang">语言：</label>
-//       <select name="langs" id="langs" onChange={handleChangeLang} value={element.lang}>
-//         <option value="cpp">C++</option>
-//         <option value="py">Python</option>
-//         <option value="js">JavaScript</option>
-//         <option value="bash">Shell</option>
-//       </select>
-//     </div>
-//     <pre><code>{children}</code></pre>
-//   </div>;
-// };
 
 // 默认块
 const DefaultElement = props => {
@@ -120,7 +115,8 @@ const SlateEdit = () => {
   // 渲染段落元素的回调函数
   const renderElement = useCallback(props => {
     switch (props.element.type) {
-    case 'code':  return <SlateCode {...props} />;
+    case 'codeblock':  return <SlateCodeBlock {...props} />;
+    case 'codeline':  return <SlateCodeLine {...props} />;
     default:  return <DefaultElement {...props} />;
     }
   }, []);
@@ -132,6 +128,12 @@ const SlateEdit = () => {
     // 如果使用中文输入法，只有空格退格删除回车能显示正确的 key，其他的均显示 Process
     // 但是输入法模式下使用 ctrl、alt 等组合键，则可以正确显示 key
     // console.log('keydown', ev.key);
+
+    if (ev.key === 'Tab') {
+      ev.preventDefault();
+      Editor.insertText(editor, '\t');
+      return;
+    }
 
     if (!ev.ctrlKey) {
       return;

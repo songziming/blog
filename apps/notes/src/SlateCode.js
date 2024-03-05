@@ -20,7 +20,7 @@ const LangSelector = ({onChange, value}) => {
 
 
 // 代码块
-const SlateCode = ({element, attributes, children}) => {
+const SlateCodeBlock = ({element, attributes, children}) => {
   const editor = useSlateStatic();
 
   const handleChangeLang = useCallback(e => {
@@ -33,8 +33,16 @@ const SlateCode = ({element, attributes, children}) => {
     <div className="code-toolbar none-edit" contentEditable={false}>
       <LangSelector onChange={handleChangeLang} value={element.lang} />
     </div>
-    <pre><code>{children}</code></pre>
+    {children}
   </div>;
 };
 
-export default SlateCode;
+
+// 代码行
+const SlateCodeLine = ({attributes, children}) => {
+  return <pre><code {...attributes}>{children}</code></pre>;
+};
+
+
+
+export { SlateCodeBlock, SlateCodeLine };
