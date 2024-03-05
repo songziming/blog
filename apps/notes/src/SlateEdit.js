@@ -4,31 +4,21 @@ import { createEditor, Transforms, Editor, Element } from 'slate';
 import { Slate, Editable, withReact } from 'slate-react';
 import { useCallback, useState, useMemo } from 'react';
 
+import SlateCode from './SlateCode';
+
 import './Editor.css';
 
 
 
-
-// 代码块
-const CodeElement = props => {
-  return <pre className="para" {...props.attributes}>
-    <code>{props.children}</code>
-  </pre>;
+/*
+// 不同类型的 block 有不同的属性，这里取并集
+// 这样不管切换到什么类型，属性字段都存在
+const kBlockDefs = {
+  type: 'para',
+  lang: 'cpp', // 可以自动分析用户习惯，预测可能的语言，或者使用上一个代码块的语言
+  level: 1,
 };
-
-// 默认块
-const DefaultElement = props => {
-  return <p className="para" {...props.attributes}>{props.children}</p>;
-};
-
-
-
-// Inline 元素
-const Leaf = props => <span {...props.attributes} style={{
-  fontWeight: props.leaf.bold ? 'bold' : 'normal',
-  fontStyle: props.leaf.italic ? 'italic' : 'normal',
-  ...(props.leaf.strike && { textDecoration: 'line-through' }),
-}}>{props.children}</span>;
+*/
 
 
 
@@ -52,7 +42,69 @@ const MyEditor = {
     );
   },
 
+  // 获取当前代码块的高亮语言
+  getLang: (editor) => {
+    const [code] = Editor.nodes(editor, {
+      match: n => n.type === 'code',
+    });
+    return code?.lang || 'cpp';
+  },
+
+  setLang: (editor, lang) => {
+    // const [code] = Editor.nodes(editor, {
+    //   match: n => n.type === 'code',
+    // });
+    Transforms.setNodes(editor,
+      { lang },
+      { match: n => Element.isElement(n) && Editor.isBlock(editor, n) && n.type === 'code' }
+    );
+  },
+
 };
+
+
+
+// // 代码块
+// const CodeElement = ({element, attributes, children}) => {
+//   const editor = useSlateStatic();
+
+//   const handleChangeLang = useCallback(e => {
+//     const lang = e.target.value;
+//     // console.log('setting language to', lang);
+
+//     const path = ReactEditor.findPath(editor, element);
+//     Transforms.setNodes(editor, { lang }, { at: path });
+//   }, [editor]);
+
+//   console.log(element);
+
+//   return <div className="para" {...attributes}>
+//     <div className="code-toolbar none-edit" contentEditable={false}>
+//     <label htmlFor="lang">语言：</label>
+//       <select name="langs" id="langs" onChange={handleChangeLang} value={element.lang}>
+//         <option value="cpp">C++</option>
+//         <option value="py">Python</option>
+//         <option value="js">JavaScript</option>
+//         <option value="bash">Shell</option>
+//       </select>
+//     </div>
+//     <pre><code>{children}</code></pre>
+//   </div>;
+// };
+
+// 默认块
+const DefaultElement = props => {
+  return <p className="para" {...props.attributes}>{props.children}</p>;
+};
+
+
+
+// Inline 元素
+const Leaf = props => <span {...props.attributes} style={{
+  fontWeight: props.leaf.bold ? 'bold' : 'normal',
+  fontStyle: props.leaf.italic ? 'italic' : 'normal',
+  ...(props.leaf.strike && { textDecoration: 'line-through' }),
+}}>{props.children}</span>;
 
 
 
@@ -68,7 +120,7 @@ const SlateEdit = () => {
   // 渲染段落元素的回调函数
   const renderElement = useCallback(props => {
     switch (props.element.type) {
-    case 'code':  return <CodeElement {...props} />;
+    case 'code':  return <SlateCode {...props} />;
     default:  return <DefaultElement {...props} />;
     }
   }, []);

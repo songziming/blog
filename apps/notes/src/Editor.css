@@ -8,7 +8,7 @@
 } */
 
 
-[contenteditable]:focus {
+[contenteditable]:focus, select:focus {
   outline: none;
 }
 
@@ -32,4 +32,21 @@
   margin: 4px auto; /* 水平居中 */
   padding: 4px;
   border-radius: 2px;
+}
+
+pre {
+  margin: 0;
+}
+
+
+.none-edit {
+  user-select: none;
+}
+
+
+/* 代码块开头的工具条 */
+.code-toolbar {
+  padding-bottom: 2px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #777;
 }
