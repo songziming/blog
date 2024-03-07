@@ -18,6 +18,11 @@ const LangSelector = ({onChange, value}) => {
 };
 
 
+// 代码行
+const SlateCodeLine = ({attributes, children}) => {
+  return <pre><code {...attributes}>{children}</code></pre>;
+};
+
 
 // 代码块
 const SlateCodeBlock = ({element, attributes, children}) => {
@@ -36,13 +41,6 @@ const SlateCodeBlock = ({element, attributes, children}) => {
     {children}
   </div>;
 };
-
-
-// 代码行
-const SlateCodeLine = ({attributes, children}) => {
-  return <pre><code {...attributes}>{children}</code></pre>;
-};
-
 
 
 export { SlateCodeBlock, SlateCodeLine };

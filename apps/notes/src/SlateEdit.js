@@ -7,6 +7,7 @@ import { useCallback, useState, useMemo } from 'react';
 import { SlateCodeBlock, SlateCodeLine } from './SlateCode';
 
 import './Editor.css';
+import { SlateListBlock } from './SlateList';
 
 
 
@@ -32,25 +33,27 @@ const MyEditor = {
     // 也可以用 removeMark
   },
 
+  toCode: (editor) => {
+    // 将文本包一层 codeblock，原来的 block 变成 codeline，去掉样式
+    Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
+      match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
+      split: true,
+    });
+    Transforms.setNodes(editor, { type: 'codeline' }, {
+      match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
+    });
+    Transforms.setNodes(editor, { bold: false }, {
+      match: n => !Element.isElement(n)
+    });
+  },
+
   toggleCode: (editor) => {
     const [match] = Editor.nodes(editor, {
       match: n => n.type === 'codeblock',
     });
 
     if (!match) {
-      // 将文本包一层 codeblock
-      Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
-        match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
-        split: true,
-      });
-      // 变成 codeline
-      Transforms.setNodes(editor, { type: 'codeline' }, {
-        match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
-      });
-      // 去掉样式
-      Transforms.setNodes(editor, { bold: false }, {
-        match: n => !Element.isElement(n)
-      });
+      MyEditor.toCode(editor);
     } else {
       // 将 codeblock 拆开
       Transforms.unwrapNodes(editor, {
@@ -82,19 +85,24 @@ const MyEditor = {
     );
   },
 
+
+  // 将一段文字转换为 List
+  toList: (editor, ordered) => {
+    //
+  },
 };
 
 
 
 
 // 默认块
-const DefaultElement = props => {
+const ParaElement = props => {
   return <p className="para" {...props.attributes}>{props.children}</p>;
 };
 
 
 
-// Inline 元素
+// Text 元素
 const Leaf = props => <span {...props.attributes} style={{
   fontWeight: props.leaf.bold ? 'bold' : 'normal',
   fontStyle: props.leaf.italic ? 'italic' : 'normal',
@@ -115,9 +123,11 @@ const SlateEdit = () => {
   // 渲染段落元素的回调函数
   const renderElement = useCallback(props => {
     switch (props.element.type) {
-    case 'codeblock':  return <SlateCodeBlock {...props} />;
-    case 'codeline':  return <SlateCodeLine {...props} />;
-    default:  return <DefaultElement {...props} />;
+    case 'codeblock': return <SlateCodeBlock {...props} />;
+    case 'codeline':  return <SlateCodeLine  {...props} />;
+    case 'listblock': return <SlateListBlock {...props} />;
+    case 'listline':  return <SlateCodeLine  {...props} />;
+    default:          return <ParaElement    {...props} />;
     }
   }, []);
 
