@@ -11,7 +11,7 @@ const SlateListLine = ({attributes, children}) => {
 const SlateListBlock = ({element, attributes, children}) => {
   const Tag = element.ordered ? 'ol' : 'ul';
 
-  return <Tag {...attributes}>
+  return <Tag className="block" {...attributes}>
     {children}
   </Tag>;
 };

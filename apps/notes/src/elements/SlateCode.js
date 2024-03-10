@@ -34,7 +34,7 @@ const SlateCodeBlock = ({element, attributes, children}) => {
     Transforms.setNodes(editor, { lang }, { at: path });
   }, [editor, element]);
 
-  return <div className="para" {...attributes}>
+  return <div className="block" {...attributes}>
     <div className="code-toolbar none-edit" contentEditable={false}>
       <LangSelector onChange={handleChangeLang} value={element.lang} />
     </div>

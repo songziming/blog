@@ -1,138 +1,76 @@
 // 使用 slate.js 定制的富文本编辑器
 
-import { createEditor, Transforms, Editor, Element } from 'slate';
+import { createEditor, Editor } from 'slate';
+import { withHistory } from 'slate-history';
 import { Slate, Editable, withReact } from 'slate-react';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import { SlateCodeBlock, SlateCodeLine } from './SlateCode';
+import { SlateCodeBlock, SlateCodeLine } from './elements/SlateCode';
+import { SlateListBlock, SlateListLine } from './elements/SlateList';
+import { SlateParagraph, SlateHeader } from './elements/SlateParagraph';
+
+import { SlateCodeSpan, SlateMathSpan, SlateLinkSpan } from './elements/SlateInlines';
+
+import * as cmd from './SlateCommands';
 
 import './Editor.css';
-import { SlateListBlock } from './SlateList';
 
 
 
-/*
-// 不同类型的 block 有不同的属性，这里取并集
-// 这样不管切换到什么类型，属性字段都存在
-const kBlockDefs = {
-  type: 'para',
-  lang: 'cpp', // 可以自动分析用户习惯，预测可能的语言，或者使用上一个代码块的语言
-  level: 1,
+
+// 所有的 Element，不管是 block 还是 inline，都在这里渲染
+const renderElement = props => {
+  switch (props.element.type) {
+  case 'codeblock': return <SlateCodeBlock {...props} />;
+  case 'codeline':  return <SlateCodeLine  {...props} />;
+  case 'listblock': return <SlateListBlock {...props} />;
+  case 'listline':  return <SlateListLine  {...props} />;
+  case 'paragraph': return <SlateParagraph {...props} />;
+  case 'header':    return <SlateHeader    {...props} />;
+
+  case 'codespan':  return <SlateCodeSpan  {...props} />;
+  case 'mathspan':  return <SlateMathSpan  {...props} />;
+  case 'linkspan':  return <SlateLinkSpan  {...props} />;
+
+  // TODO 专门创建一个 Error 组件，用于显示错误元素的类型
+  default: return <div contentEditable={false}>ERROR</div>;
+  }
 };
-*/
-
-
-
-
-// 自定义命令
-const MyEditor = {
-
-  toggleBold: (editor) => {
-    const isBold = Editor.marks(editor)?.bold || false;
-    Editor.addMark(editor, 'bold', !isBold);
-    // 也可以用 removeMark
-  },
-
-  toCode: (editor) => {
-    // 将文本包一层 codeblock，原来的 block 变成 codeline，去掉样式
-    Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
-      match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
-      split: true,
-    });
-    Transforms.setNodes(editor, { type: 'codeline' }, {
-      match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
-    });
-    Transforms.setNodes(editor, { bold: false }, {
-      match: n => !Element.isElement(n)
-    });
-  },
-
-  toggleCode: (editor) => {
-    const [match] = Editor.nodes(editor, {
-      match: n => n.type === 'codeblock',
-    });
-
-    if (!match) {
-      MyEditor.toCode(editor);
-    } else {
-      // 将 codeblock 拆开
-      Transforms.unwrapNodes(editor, {
-        match: n => Element.isElement(n) && n.type === 'codeblock'
-      });
-      // 里面的 codeline 换成普通段落
-      Transforms.setNodes(editor,
-        { type: 'paragraph' },
-        { match: n => Element.isElement(n) && n.type === 'codeline' }
-      );
-    }
-  },
-
-  // 获取当前代码块的高亮语言
-  getLang: (editor) => {
-    const [code] = Editor.nodes(editor, {
-      match: n => n.type === 'code',
-    });
-    return code?.lang || 'cpp';
-  },
-
-  setLang: (editor, lang) => {
-    // const [code] = Editor.nodes(editor, {
-    //   match: n => n.type === 'code',
-    // });
-    Transforms.setNodes(editor,
-      { lang },
-      { match: n => Element.isElement(n) && Editor.isBlock(editor, n) && n.type === 'code' }
-    );
-  },
-
-
-  // 将一段文字转换为 List
-  toList: (editor, ordered) => {
-    //
-  },
-};
-
-
-
-
-// 默认块
-const ParaElement = props => {
-  return <p className="para" {...props.attributes}>{props.children}</p>;
-};
-
 
 
 // Text 元素
-const Leaf = props => <span {...props.attributes} style={{
+const renderLeaf = props => <span {...props.attributes} style={{
   fontWeight: props.leaf.bold ? 'bold' : 'normal',
   fontStyle: props.leaf.italic ? 'italic' : 'normal',
   ...(props.leaf.strike && { textDecoration: 'line-through' }),
 }}>{props.children}</span>;
 
 
-
-// 默认文档内容
-const kINITIALVALUE = [{
-  type: 'paragraph',
-  children: [{ text: 'A line of text in a paragraph.' }],
-}];
-
+// 核心编辑器
 const SlateEdit = () => {
-  const [editor] = useState(withReact(createEditor()));
+  // const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const editor = useMemo(() => withReact(createEditor()), []);
 
-  // 渲染段落元素的回调函数
-  const renderElement = useCallback(props => {
-    switch (props.element.type) {
-    case 'codeblock': return <SlateCodeBlock {...props} />;
-    case 'codeline':  return <SlateCodeLine  {...props} />;
-    case 'listblock': return <SlateListBlock {...props} />;
-    case 'listline':  return <SlateCodeLine  {...props} />;
-    default:          return <ParaElement    {...props} />;
-    }
+  const initialValue = useMemo(() => {
+    const content = localStorage.getItem('content');
+    return JSON.parse(content) || [{
+      type: 'paragraph',
+      children: [{ text: 'A line of text in a paragraph.' }],
+    }];
   }, []);
 
-  // 渲染 Inline 元素的回调函数
-  const renderLeaf = useCallback(props => <Leaf {...props} />, []);
+  const handleChange = useCallback(value => {
+    // 光标选择区的变化不算数据变更
+    const isAstChange = editor.operations.some(op => 'set_selection' !== op.type);
+    // console.log('change', isAstChange);
+    if (!isAstChange) {
+      return;
+    }
+
+    // TODO 标记为 dirty
+    const content = JSON.stringify(value);
+    localStorage.setItem('content', content);
+  }, [editor]);
 
   const handleKeyDown = useCallback(ev => {
     // 如果使用中文输入法，只有空格退格删除回车能显示正确的 key，其他的均显示 Process
@@ -152,61 +90,18 @@ const SlateEdit = () => {
     switch (ev.key) {
       case '`': {
         ev.preventDefault();
-        MyEditor.toggleCode(editor);
-        // const [match] = Editor.nodes(editor, {
-        //   match: n => n.type === 'code',
-        // });
-        // Transforms.setNodes(editor,
-        //   { type: match ? 'paragraph' : 'code' },
-        //   { match: n => Element.isElement(n) && Editor.isBlock(editor, n) }
-        // );
+        cmd.toggleCode(editor);
         break;
       }
       case 'b': {
         ev.preventDefault();
-        MyEditor.toggleBold(editor);
-        // const isBold = Editor.marks(editor)?.bold || false;
-        // Editor.addMark(editor, 'bold', !isBold);
+        cmd.toggleBold(editor);
         break;
       }
       default:
         break;
     }
   }, [editor]);
-
-
-
-  const handleChange = useCallback(value => {
-    // 光标选择区的变化不算数据变更
-    const isAstChange = editor.operations.some(op => 'set_selection' !== op.type);
-    console.log('change', isAstChange);
-    if (!isAstChange) {
-      return;
-    }
-
-    // TODO 标记为 dirty
-    const content = JSON.stringify(value);
-    localStorage.setItem('content', content);
-  }, [editor]);
-
-
-
-  // const initialValue = [{
-  //   type: 'paragraph',
-  //   children: [{ text: 'A line of text in a paragraph.' }],
-  // }];
-
-  const initialValue = useMemo(() => {
-    const content = localStorage.getItem('content');
-    if (!content) {
-      return kINITIALVALUE;
-    }
-    const obj = JSON.parse(content);
-    if (!obj) {
-      return kINITIALVALUE;
-    }
-    return obj;
-  }, []);
 
 
   return <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>

@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "recoil": "^0.7.7",
     "slate": "^0.102.0",
+    "slate-history": "^0.100.0",
     "slate-react": "^0.102.0"
   },
   "scripts": {
