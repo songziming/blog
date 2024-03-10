@@ -23,6 +23,22 @@ const toggleBold = (editor) => {
 
 // TODO 需要分清转换之前是什么类型，转换为什么类型，目标类型是否支持保留样式
 
+
+
+// const commonConvert = (editor, dropMarks=false) => {
+//   if (dropMarks) {
+//     Editor.removeMark(editor, 'bold');
+//     Editor.removeMark(editor, 'italic');
+//     Editor.removeMark(editor, 'strikeout');
+//   }
+
+//   Transforms.setNodes(editor, {
+//     type:
+//   })
+// };
+
+
+
 // 将文本包一层 codeblock，原来的 block 变成 codeline，去掉样式
 const toCodeBlock = (editor) => {
   Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
@@ -66,11 +82,28 @@ const toggleCode = (editor) => {
 };
 
 
+const LINE_TYPES = [
+  'paragraph', 'codeline', 'listline'
+];
+
+
+// 将正文转换为列表
+// 如果选中部分包含几行 codeline，需要把这些 codeline 从 codeblock 里移除
+const toListBlock = (editor) => {
+  Transforms.setNodes(editor, { type: 'listline' }, {
+    match: n => Element.isElement(n) && (LINE_TYPES.indexOf(n.type) !== -1),
+  });
+  Transforms.wrapNodes(editor, { type: 'listblock' }, {
+    match: n => Element.isElement(n) && n.type === 'listline',
+  });
+};
+
+
 
 
 
 
 export {
   toggleBold,
-  toCodeBlock, toParagraph, toggleCode,
+  toCodeBlock, toParagraph, toggleCode, toListBlock,
 };

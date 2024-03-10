@@ -2,7 +2,7 @@
 
 import { createEditor, Editor } from 'slate';
 import { withHistory } from 'slate-history';
-import { Slate, Editable, withReact } from 'slate-react';
+import { Slate, Editable, withReact, useSlate } from 'slate-react';
 import { useCallback, useMemo } from 'react';
 
 import { SlateCodeBlock, SlateCodeLine } from './elements/SlateCode';
@@ -46,10 +46,22 @@ const renderLeaf = props => <span {...props.attributes} style={{
 }}>{props.children}</span>;
 
 
+// 工具条
+const ToolBar = () => {
+  const editor = useSlate();
+
+  return <div className="toolbar">
+    <button onClick={() => cmd.toParagraph(editor)}>para</button>
+    <button onClick={() => cmd.toCodeBlock(editor)}>code</button>
+    <button onClick={() => cmd.toListBlock(editor)}>list</button>
+  </div>;
+};
+
+
 // 核心编辑器
 const SlateEdit = () => {
-  // const editor = useMemo(() => withHistory(withReact(createEditor())), []);
-  const editor = useMemo(() => withReact(createEditor()), []);
+  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  // const editor = useMemo(() => withReact(createEditor()), []);
 
   const initialValue = useMemo(() => {
     const content = localStorage.getItem('content');
@@ -106,7 +118,8 @@ const SlateEdit = () => {
 
   return <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
     <div className="fullscreen">
-      <Editable style={{ height: '100%' }}
+      <ToolBar />
+      <Editable className="editable"
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         onKeyDown={handleKeyDown} />
