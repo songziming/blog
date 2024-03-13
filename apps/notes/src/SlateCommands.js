@@ -9,9 +9,22 @@ import { Transforms, Editor, Element } from 'slate';
 //------------------------------------------------------------------------------
 
 const toggleBold = (editor) => {
+  // 应该检查我们位于哪个 block 内部，并不是每个 block 都支持 bold
+  // 例如在代码块里，就不应该 bold
   if (Editor.marks(editor)?.bold) {
     Editor.removeMark(editor, 'bold');
+  } else {
+    Editor.addMark(editor, 'bold', true);
   }
+
+};
+
+
+// 去掉所有的属性
+const dropAllMarks = (editor) => {
+  Transforms.unsetNodes(editor, ['bold', 'italic', 'strikeout'], {
+    match: n => Element.isElement(n) && Editor.isInline(n),
+  })
 };
 
 
@@ -43,24 +56,33 @@ const toggleBold = (editor) => {
 const toCodeBlock = (editor) => {
   Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
     match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
-    split: true,
+    // split: true,
   });
   Transforms.setNodes(editor, { type: 'codeline' }, {
     match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
   });
-  Transforms.setNodes(editor, { bold: false }, {
-    match: n => !Element.isElement(n)
-  });
+
+  // 去掉所有样式（使用 dropAllMarks）
+  // Transforms.setNodes(editor, { bold: false }, {
+  //   match: n => !Element.isElement(n)
+  // });
 }
 
 
 // TODO 需要识别当前段落的类型，再有针对性地提取文字，变为普通段落
 const toParagraph = (editor) => {
+  // 也许选中的不是整个 code block，只是其中几行，该如何处理？
+  // 要么整个 code block 都变为 paragraph，要么从 codeblock 只去掉那几行
   // 将 codeblock 拆开
   Transforms.unwrapNodes(editor, {
     match: n => Element.isElement(n) && n.type === 'codeblock'
   });
+
+  // 使用 findPath 找出所在 codeblock 的路径？
+
+
   // 里面的 codeline 换成普通段落
+  // 必须传入 at 参数，因为不一定选中 所有的 codeline
   Transforms.setNodes(editor,
     { type: 'paragraph' },
     { match: n => Element.isElement(n) && n.type === 'codeline' }
@@ -75,8 +97,10 @@ const toggleCode = (editor) => {
   });
 
   if (!match) {
+    console.log('converting to code block');
     toCodeBlock(editor);
   } else {
+    console.log('converting to paragraph');
     toParagraph(editor);
   }
 };
@@ -104,6 +128,6 @@ const toListBlock = (editor) => {
 
 
 export {
-  toggleBold,
+  toggleBold, dropAllMarks,
   toCodeBlock, toParagraph, toggleCode, toListBlock,
 };

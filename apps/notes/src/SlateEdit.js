@@ -2,7 +2,7 @@
 
 import { createEditor, Editor } from 'slate';
 import { withHistory } from 'slate-history';
-import { Slate, Editable, withReact, useSlate } from 'slate-react';
+import { Slate, Editable, withReact } from 'slate-react';
 import { useCallback, useMemo } from 'react';
 
 import { SlateCodeBlock, SlateCodeLine } from './elements/SlateCode';
@@ -12,6 +12,7 @@ import { SlateParagraph, SlateHeader } from './elements/SlateParagraph';
 import { SlateCodeSpan, SlateMathSpan, SlateLinkSpan } from './elements/SlateInlines';
 
 import * as cmd from './SlateCommands';
+import SlateToolBar from './SlateToolBar';
 
 import './Editor.css';
 
@@ -22,12 +23,12 @@ import './Editor.css';
 const renderElement = props => {
   switch (props.element.type) {
   case 'codeblock': return <SlateCodeBlock {...props} />;
-  case 'codeline':  return <SlateCodeLine  {...props} />;
   case 'listblock': return <SlateListBlock {...props} />;
   case 'listline':  return <SlateListLine  {...props} />;
   case 'paragraph': return <SlateParagraph {...props} />;
   case 'header':    return <SlateHeader    {...props} />;
 
+  case 'codeline':  return <SlateCodeLine  {...props} />;
   case 'codespan':  return <SlateCodeSpan  {...props} />;
   case 'mathspan':  return <SlateMathSpan  {...props} />;
   case 'linkspan':  return <SlateLinkSpan  {...props} />;
@@ -46,16 +47,22 @@ const renderLeaf = props => <span {...props.attributes} style={{
 }}>{props.children}</span>;
 
 
-// 工具条
-const ToolBar = () => {
-  const editor = useSlate();
 
-  return <div className="toolbar">
-    <button onClick={() => cmd.toParagraph(editor)}>para</button>
-    <button onClick={() => cmd.toCodeBlock(editor)}>code</button>
-    <button onClick={() => cmd.toListBlock(editor)}>list</button>
-  </div>;
+// 自定义插件
+const withInlines = editor => {
+  // const { children, ...props } = editor;
+  // return <Slate {...props} renderLeaf={renderLeaf} />;
+  const { isInline } = editor;
+
+  editor.isInline = element => {
+    ['codeline', 'codespan', 'mathspan', 'linkspan'].includes(element.type) && isInline(element);
+    return isInline(element);
+  };
+
+  return editor;
 };
+
+
 
 
 // 核心编辑器
@@ -118,7 +125,7 @@ const SlateEdit = () => {
 
   return <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
     <div className="fullscreen">
-      <ToolBar />
+      <SlateToolBar />
       <Editable className="editable"
         renderElement={renderElement}
         renderLeaf={renderLeaf}

@@ -49,7 +49,7 @@
 .block {
   background-color: #eee;
   overflow: auto; /* 将子元素的 margin 包含进来 */
-  max-width: 960px;
+  max-width: 940px;
   margin: 4px auto; /* 水平居中 */
   padding: 4px;
   border-radius: 2px;
