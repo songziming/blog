@@ -8,26 +8,21 @@ import { Transforms, Editor, Element } from 'slate';
 // 对 Leaf 样式的改动
 //------------------------------------------------------------------------------
 
-const toggleBold = (editor) => {
-  // 应该检查我们位于哪个 block 内部，并不是每个 block 都支持 bold
-  // 例如在代码块里，就不应该 bold
-  if (Editor.marks(editor)?.bold) {
-    Editor.removeMark(editor, 'bold');
+const toggleMark = (editor, mark) => {
+  if (mark in (Editor.marks(editor) || {})) {
+    console.log(`removing mark ${mark}`);
+    Editor.removeMark(editor, mark);
   } else {
-    Editor.addMark(editor, 'bold', true);
+    console.log(`adding mark ${mark}`);
+    Editor.addMark(editor, mark, true);
   }
-
 };
 
-
-// 去掉所有的属性
-const dropAllMarks = (editor) => {
-  Transforms.unsetNodes(editor, ['bold', 'italic', 'strikeout'], {
+const unsetMarks = (editor, marks) => {
+  Transforms.unsetNodes(editor, marks, {
     match: n => Element.isElement(n) && Editor.isInline(n),
-  })
+  });
 };
-
-
 
 
 //------------------------------------------------------------------------------
@@ -128,6 +123,6 @@ const toListBlock = (editor) => {
 
 
 export {
-  toggleBold, dropAllMarks,
+  toggleMark, unsetMarks,
   toCodeBlock, toParagraph, toggleCode, toListBlock,
 };

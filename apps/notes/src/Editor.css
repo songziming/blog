@@ -71,3 +71,11 @@ pre {
   margin-bottom: 4px;
   border-bottom: 1px solid #777;
 }
+
+
+/* 相同语言的文本合并成一个span，不同语言的 span 之间留出间隔 */
+/* 我们规定一个段落的字号相同，因此使用 0.25em 没有问题 */
+/* .block > span { */
+span.cjk + span:not(.cjk), span:not(.cjk) + span.cjk {
+  margin-left: 0.25em;
+}

@@ -2,20 +2,19 @@
 
 基于 slatejs 定制的富文本编辑器，满足个人笔记的要求。
 
+Slate 也是 model-view 设计，view 就是 React 组件，核心 model 是文档数据模型。
+
+编辑操作就是对文档模型的更新，通过 Transforms 实现。
+
 # Schema
 
-Leaf 元素是 {text: ""}。Leaf 可以有加粗、倾斜等样式，作为与 text 平级的成员。
+整个文档是一棵树。节点有 Leaf、Element 两类。拥有 text 成员就是 Leaf，拥有 children 成员就是 Element。
 
-Element 是拥有 children 成员的节点。Element 子元素是 Leaf 或者其他 Element。
+Leaf 除了 text，还可以有其他字段，表示加粗、倾斜等样式。
 
-有些 Element 属于 Inline，有些属于 Block。
+Element.children 可以包含 Leaf 或者其他 Element。
 
-一般的 Block 包含 Inline 和 Leaf，例如正文、标题。
-有些 Block 包含其他 Block，例如代码块、列表块，引用文字块。
-还有的 Block 不含文字，如 Image、Bookmark、FileRef。
-还有的 Block 比较特殊，如 Table、DataFrame。
-
-各种 Element 通过 type 字段区分：
+有些 Element 属于 Inline，有些属于 Block，但这需要我们判断。我们可以给 Element 加上 type 字段：
 
 - Inline 类型：
   - type="codespan"

@@ -11,7 +11,6 @@ import { SlateParagraph, SlateHeader } from './elements/SlateParagraph';
 
 import { SlateCodeSpan, SlateMathSpan, SlateLinkSpan } from './elements/SlateInlines';
 
-import * as cmd from './SlateCommands';
 import SlateToolBar from './SlateToolBar';
 
 import './Editor.css';
@@ -33,31 +32,29 @@ const renderElement = props => {
   case 'mathspan':  return <SlateMathSpan  {...props} />;
   case 'linkspan':  return <SlateLinkSpan  {...props} />;
 
-  // TODO 专门创建一个 Error 组件，用于显示错误元素的类型
+  // 专门创建一个 Error 组件，用于显示错误元素的类型
   default: return <div contentEditable={false}>ERROR</div>;
   }
 };
 
 
-// Text 元素
+// 渲染 Text 元素
 const renderLeaf = props => <span {...props.attributes} style={{
   fontWeight: props.leaf.bold ? 'bold' : 'normal',
   fontStyle: props.leaf.italic ? 'italic' : 'normal',
   ...(props.leaf.strike && { textDecoration: 'line-through' }),
+  ...(props.leaf.underline && { borderBottom: '1px solid' }),
 }}>{props.children}</span>;
 
 
 
-// 自定义插件
+// 自定义插件，重写 editor 的成员函数
 const withInlines = editor => {
-  // const { children, ...props } = editor;
-  // return <Slate {...props} renderLeaf={renderLeaf} />;
   const { isInline } = editor;
 
-  editor.isInline = element => {
-    ['codeline', 'codespan', 'mathspan', 'linkspan'].includes(element.type) && isInline(element);
-    return isInline(element);
-  };
+  editor.isInline = element => [
+    'codeline', 'codespan', 'mathspan', 'linkspan'
+  ].includes(element.type) || isInline(element);
 
   return editor;
 };
@@ -67,7 +64,8 @@ const withInlines = editor => {
 
 // 核心编辑器
 const SlateEdit = () => {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const editor = useMemo(() => withInlines(withHistory(withReact(createEditor()))), []);
+  // const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   // const editor = useMemo(() => withReact(createEditor()), []);
 
   const initialValue = useMemo(() => {
@@ -102,24 +100,26 @@ const SlateEdit = () => {
       return;
     }
 
-    if (!ev.ctrlKey) {
-      return;
-    }
+    // 快捷键也可以在这里响应
 
-    switch (ev.key) {
-      case '`': {
-        ev.preventDefault();
-        cmd.toggleCode(editor);
-        break;
-      }
-      case 'b': {
-        ev.preventDefault();
-        cmd.toggleBold(editor);
-        break;
-      }
-      default:
-        break;
-    }
+    // if (!ev.ctrlKey) {
+    //   return;
+    // }
+
+    // switch (ev.key) {
+    //   case '`': {
+    //     ev.preventDefault();
+    //     cmd.toggleCode(editor);
+    //     break;
+    //   }
+    //   case 'b': {
+    //     ev.preventDefault();
+    //     cmd.toggleBold(editor);
+    //     break;
+    //   }
+    //   default:
+    //     break;
+    // }
   }, [editor]);
 
 
