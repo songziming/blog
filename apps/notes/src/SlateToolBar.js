@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useSlate } from 'slate-react';
-import { Transforms } from 'slate';
+import { Editor } from 'slate';
 import * as cmd from './SlateCommands';
 
 
@@ -13,12 +13,23 @@ const SlateToolBar = () => {
 
   // 测试函数，使用 transform 检查 AST
   const showAST = useCallback(() => {
-    Transforms.setNodes(editor, {}, {
-      match: (n) => {
-        console.log(n);
-        return false;
-      },
-    });
+    // Transforms.setNodes(editor, {}, {
+    //   match: (n) => {
+    //     console.log(n);
+    //     return false;
+    //   },
+    // });
+
+    // 遍历所有的非叶子节点
+    const all_nodes = Editor.nodes(editor, {at:[]});
+    for (const [node, path] of all_nodes) {
+      if (!('type' in node)) {
+        // 没有 type，说明这是 Editor
+        console.log('Editor');
+      } else {
+        console.log(`node ${node.type} at ${path}`, node);
+      }
+    }
   }, [editor]);
 
   const dropMarks = useCallback(() => cmd.unsetMarks(editor, ['bold', 'italic', 'underline']), [editor]);
@@ -32,6 +43,7 @@ const SlateToolBar = () => {
   const toggleUnderline = useCallback(() => cmd.toggleMark(editor, 'underline'), [editor]);
 
   return <div className="toolbar">
+    <span>Tools: </span>
     <button onClick={showAST}>show</button>
     <button onClick={dropMarks}>drop</button>
     <button onClick={convParagraph}>para</button>
