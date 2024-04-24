@@ -5,7 +5,7 @@ import { withHistory } from 'slate-history';
 import { Slate, Editable, withReact } from 'slate-react';
 import { useCallback, useMemo } from 'react';
 
-import { SlateCodeBlock, SlateCodeLine } from './elements/SlateCode';
+import { SlateCodeBlock } from './elements/SlateCode';
 import { SlateListBlock, SlateListLine } from './elements/SlateList';
 import { SlateParagraph, SlateHeader } from './elements/SlateParagraph';
 
@@ -27,7 +27,7 @@ const renderElement = props => {
   case 'paragraph': return <SlateParagraph {...props} />;
   case 'header':    return <SlateHeader    {...props} />;
 
-  case 'codeline':  return <SlateCodeLine  {...props} />;
+  // case 'codeline':  return <SlateCodeLine  {...props} />;
   case 'codespan':  return <SlateCodeSpan  {...props} />;
   case 'mathspan':  return <SlateMathSpan  {...props} />;
   case 'linkspan':  return <SlateLinkSpan  {...props} />;

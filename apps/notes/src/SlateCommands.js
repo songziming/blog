@@ -1,4 +1,4 @@
-import { Transforms, Editor, Element, Text } from 'slate';
+import { Transforms, Editor, Element, Text, Node } from 'slate';
 
 
 // 各种编辑都是针对选中部分
@@ -33,45 +33,8 @@ const unsetMarks = (editor, marks) => {
 
 
 
-// const commonConvert = (editor, dropMarks=false) => {
-//   if (dropMarks) {
-//     Editor.removeMark(editor, 'bold');
-//     Editor.removeMark(editor, 'italic');
-//     Editor.removeMark(editor, 'strikeout');
-//   }
-
-//   Transforms.setNodes(editor, {
-//     type:
-//   })
-// };
-
-
-
-// slatejs 教程里，代码块是用两层 block 实现的，这样可以像正文一样编辑
-// 但是仔细检查飞书 notion 等编辑器，选择区不能跨越代码块和普通文本
-// 说明代码块不是用 slate element 实现的，正好可以使用 codemirror 或 monaco
-// 分析飞书文档，代码块是 contentEditable=false 内部包含一个 contentEditable=true
-
-
-// 将文本包一层 codeblock，原来的 block 变成 codeline，去掉样式
-const toCodeBlock = (editor) => {
-  // 找出选中范围包含哪些末级 block，从所在的 parent block 取出
-  Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
-    match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
-    // split: true,
-  });
-  Transforms.setNodes(editor, { type: 'codeline' }, {
-    match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
-  });
-
-  // 去掉所有样式（使用 dropAllMarks）
-  // Transforms.setNodes(editor, { bold: false }, {
-  //   match: n => !Element.isElement(n)
-  // });
-}
-
-
 // 各种类型的 block 转换为普通文本段落
+// TODO codeblock 的 children 为空，代码不存储在这里
 const toParagraph = (editor) => {
   Transforms.setNodes(editor,
     { type: 'paragraph' },
@@ -86,6 +49,55 @@ const toHeader = (editor, lv) => {
     { type: 'header', level: lv },
     { match: n => Element.isElement(n) && !editor.isInline(n) }
   );
+};
+
+
+
+//------------------------------------------------------------------------------
+// 代码块
+//------------------------------------------------------------------------------
+
+// slatejs 教程里，代码块是用两层 block 实现的，这样可以像正文一样编辑
+// 但是仔细检查飞书 notion 等编辑器，选择区不能跨越代码块和普通文本
+// 说明代码块不是用 slate element 实现的，正好可以使用 codemirror 或 monaco
+// 分析飞书文档，代码块是 contentEditable=false 内部包含一个 contentEditable=true
+
+
+// const 
+
+// 代码可以有多行，多个 block 合并成一个 block
+const toCodeBlock = (editor) => {
+  // Transforms.unwrapNodes(editor, {
+  //   at: [], // Path of Editor
+  //   match: node =>
+  //     !Editor.isEditor(node) &&
+  //     node.children?.every(child => Editor.isBlock(editor, child)),
+  //   mode: 'all', // also the Editor's children
+  // });
+  // // 找出选中范围包含哪些末级 block，从所在的 parent block 取出
+  // Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
+  //   match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
+  //   // split: true,
+  // });
+  // Transforms.setNodes(editor, { type: 'codeline' }, {
+  //   match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph')
+  // });
+
+
+  const blocks = Editor.nodes(editor, {
+    match: n => Element.isElement(n),
+  });
+  const text = [...blocks].map(([b,p]) => Node.string(b)).join('\n');
+  // console.log(text);
+
+  Transforms.removeNodes(editor);
+  Transforms.insertNodes(editor, {
+    type: 'codeblock',
+    children: [{text:''}], // 必须留一个空的 leaf 元素，否则不满足 slate 正规化要求
+    content: text
+  });
+
+  // TODO 转换代码块之后，光标放在代码块内部
 };
 
 

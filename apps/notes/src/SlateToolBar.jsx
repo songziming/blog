@@ -11,16 +11,8 @@ import * as cmd from './SlateCommands';
 const SlateToolBar = () => {
   const editor = useSlate();
 
-  // 测试函数，使用 transform 检查 AST
+  // 测试函数，遍历 AST
   const showAST = useCallback(() => {
-    // Transforms.setNodes(editor, {}, {
-    //   match: (n) => {
-    //     console.log(n);
-    //     return false;
-    //   },
-    // });
-
-    // 遍历所有的非叶子节点
     const all_nodes = Editor.nodes(editor, {at:[]});
     for (const [node, path] of all_nodes) {
       if ('type' in node) {
