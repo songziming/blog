@@ -1,4 +1,4 @@
-import { Transforms, Editor, Element } from 'slate';
+import { Transforms, Editor, Element, Text } from 'slate';
 
 
 // 各种编辑都是针对选中部分
@@ -10,17 +10,17 @@ import { Transforms, Editor, Element } from 'slate';
 
 const toggleMark = (editor, mark) => {
   if (mark in (Editor.marks(editor) || {})) {
-    console.log(`removing mark ${mark}`);
+    // console.log(`removing mark ${mark}`);
     Editor.removeMark(editor, mark);
   } else {
-    console.log(`adding mark ${mark}`);
+    // console.log(`adding mark ${mark}`);
     Editor.addMark(editor, mark, true);
   }
 };
 
 const unsetMarks = (editor, marks) => {
   Transforms.unsetNodes(editor, marks, {
-    match: n => Element.isElement(n) && Editor.isInline(n),
+    match: n => Text.isText(n),
   });
 };
 
@@ -47,8 +47,15 @@ const unsetMarks = (editor, marks) => {
 
 
 
+// slatejs 教程里，代码块是用两层 block 实现的，这样可以像正文一样编辑
+// 但是仔细检查飞书 notion 等编辑器，选择区不能跨越代码块和普通文本
+// 说明代码块不是用 slate element 实现的，正好可以使用 codemirror 或 monaco
+// 分析飞书文档，代码块是 contentEditable=false 内部包含一个 contentEditable=true
+
+
 // 将文本包一层 codeblock，原来的 block 变成 codeline，去掉样式
 const toCodeBlock = (editor) => {
+  // 找出选中范围包含哪些末级 block，从所在的 parent block 取出
   Transforms.wrapNodes(editor, { type: 'codeblock', lang: 'py' }, {
     match: n => Element.isElement(n) && (n.type === 'codeline' || n.type === 'paragraph'),
     // split: true,
@@ -64,23 +71,20 @@ const toCodeBlock = (editor) => {
 }
 
 
-// TODO 需要识别当前段落的类型，再有针对性地提取文字，变为普通段落
+// 各种类型的 block 转换为普通文本段落
 const toParagraph = (editor) => {
-  // 也许选中的不是整个 code block，只是其中几行，该如何处理？
-  // 要么整个 code block 都变为 paragraph，要么从 codeblock 只去掉那几行
-  // 将 codeblock 拆开
-  Transforms.unwrapNodes(editor, {
-    match: n => Element.isElement(n) && n.type === 'codeblock'
-  });
-
-  // 使用 findPath 找出所在 codeblock 的路径？
-
-
-  // 里面的 codeline 换成普通段落
-  // 必须传入 at 参数，因为不一定选中 所有的 codeline
   Transforms.setNodes(editor,
     { type: 'paragraph' },
-    { match: n => Element.isElement(n) && n.type === 'codeline' }
+    { match: n => Element.isElement(n) && !editor.isInline(n) }
+  );
+};
+
+
+// 转换为标题
+const toHeader = (editor, lv) => {
+  Transforms.setNodes(editor,
+    { type: 'header', level: lv },
+    { match: n => Element.isElement(n) && !editor.isInline(n) }
   );
 };
 
@@ -124,5 +128,5 @@ const toListBlock = (editor) => {
 
 export {
   toggleMark, unsetMarks,
-  toCodeBlock, toParagraph, toggleCode, toListBlock,
+  toCodeBlock, toParagraph, toggleCode, toListBlock, toHeader,
 };

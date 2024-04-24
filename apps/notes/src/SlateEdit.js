@@ -50,11 +50,16 @@ const renderLeaf = props => <span {...props.attributes} style={{
 
 // 自定义插件，重写 editor 的成员函数
 const withInlines = editor => {
-  const { isInline } = editor;
+  const { isInline, insertText, insertNode } = editor;
 
   editor.isInline = element => [
     'codeline', 'codespan', 'mathspan', 'linkspan'
   ].includes(element.type) || isInline(element);
+
+  editor.insertText = text => {
+    // console.log('inserting', text);
+    insertNode({text: text, script: 'cjk'});
+  };
 
   return editor;
 };
@@ -92,7 +97,28 @@ const SlateEdit = () => {
   const handleKeyDown = useCallback(ev => {
     // 如果使用中文输入法，只有空格退格删除回车能显示正确的 key，其他的均显示 Process
     // 但是输入法模式下使用 ctrl、alt 等组合键，则可以正确显示 key
-    // console.log('keydown', ev.key);
+    // console.log('keydown', ev.key, ev);
+
+    // 检测 ctrl 组合键
+    if (ev.ctrlKey) {
+      switch (ev.key) {
+      case 'b': console.log('bold'); break; // cmd.toggleBold(editor);
+      case 'i': console.log('italic'); break;
+      case 'u': console.log('underline'); break;
+      case '`': console.log('codeblock'); break; // cmd.toggleCode(editor);
+      default: break;
+      }
+      return;
+    }
+
+    // 检测 shift 组合键（大部分是大写/上标）
+    if (ev.shiftKey) {
+      if ('Enter' === ev.key) {
+        ev.preventDefault();
+        Editor.insertText(editor, '\n');
+        return;
+      }
+    }
 
     if (ev.key === 'Tab') {
       ev.preventDefault();
@@ -100,26 +126,8 @@ const SlateEdit = () => {
       return;
     }
 
-    // 快捷键也可以在这里响应
-
-    // if (!ev.ctrlKey) {
-    //   return;
-    // }
-
-    // switch (ev.key) {
-    //   case '`': {
-    //     ev.preventDefault();
-    //     cmd.toggleCode(editor);
-    //     break;
-    //   }
-    //   case 'b': {
-    //     ev.preventDefault();
-    //     cmd.toggleBold(editor);
-    //     break;
-    //   }
-    //   default:
-    //     break;
-    // }
+    // ev.preventDefault();
+    // Editor.insertNode(editor, {text: ev.key});
   }, [editor]);
 
 

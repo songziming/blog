@@ -23,11 +23,13 @@ const SlateToolBar = () => {
     // 遍历所有的非叶子节点
     const all_nodes = Editor.nodes(editor, {at:[]});
     for (const [node, path] of all_nodes) {
-      if (!('type' in node)) {
-        // 没有 type，说明这是 Editor
-        console.log('Editor');
-      } else {
+      if ('type' in node) {
         console.log(`node ${node.type} at ${path}`, node);
+      } else if ('text' in node) {
+        let marks = Object.keys(node).filter(s => s !== 'text');
+        console.log(`text ${path} "${node.text}", marks (${marks})`);
+      } else {
+        console.log('Editor', path);
       }
     }
   }, [editor]);
@@ -37,6 +39,9 @@ const SlateToolBar = () => {
   const convParagraph = useCallback(() => cmd.toParagraph(editor), [editor]);
   const convCodeBlock = useCallback(() => cmd.toCodeBlock(editor), [editor]);
   const convListBlock = useCallback(() => cmd.toListBlock(editor), [editor]);
+  const convHeader1 = useCallback(() => cmd.toHeader(editor, 1), [editor]);
+  const convHeader2 = useCallback(() => cmd.toHeader(editor, 2), [editor]);
+  const convHeader3 = useCallback(() => cmd.toHeader(editor, 3), [editor]);
 
   const toggleBold = useCallback(() => cmd.toggleMark(editor, 'bold'), [editor]);
   const toggleItalic = useCallback(() => cmd.toggleMark(editor, 'italic'), [editor]);
@@ -47,6 +52,9 @@ const SlateToolBar = () => {
     <button onClick={showAST}>show</button>
     <button onClick={dropMarks}>drop</button>
     <button onClick={convParagraph}>para</button>
+    <button onClick={convHeader1}>H1</button>
+    <button onClick={convHeader2}>H2</button>
+    <button onClick={convHeader3}>H3</button>
     <button onClick={convCodeBlock}>code</button>
     <button onClick={convListBlock}>list</button>
     <button onClick={toggleBold}>B</button>
