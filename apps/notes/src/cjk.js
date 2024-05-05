@@ -22,7 +22,7 @@ const textToRanges = text => {
   
   return {
     text: text,
-    script:
+    script: 'zh',
   };
 };
 

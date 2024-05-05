@@ -43,7 +43,7 @@ const toParagraph = (editor) => {
 };
 
 
-// 转换为标题
+// 转换为标题，还要传入级别参数
 const toHeader = (editor, lv) => {
   Transforms.setNodes(editor,
     { type: 'header', level: lv },
@@ -93,8 +93,8 @@ const toCodeBlock = (editor) => {
   Transforms.removeNodes(editor);
   Transforms.insertNodes(editor, {
     type: 'codeblock',
-    children: [{text:''}], // 必须留一个空的 leaf 元素，否则不满足 slate 正规化要求
-    content: text
+    children: [{text: text}], // 代码放在一个 Leaf 里面
+    // content: text
   });
 
   // TODO 转换代码块之后，光标放在代码块内部
