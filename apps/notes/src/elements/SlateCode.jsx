@@ -32,11 +32,11 @@ const SlateCodeBlock = ({element, attributes}) => {
   //      应该监听 onSelect 事件，在全局状态（react context）里记录下当前选中的 block
 
   const [curCode, setCode] = useState(element.children[0].text);
-  const inner = <pre><code>{curCode}</code></pre>;
+  const inner = `<pre><code>${curCode}</code></pre>`;
 
   const handleChange = useCallback(ev => {
     setCode({html: ev.target.value});
-  });
+  }, []);
 
   // 必须从 element 里面取 children 元素，这样取出的才是渲染之前的 Text
   return <div className="block" {...attributes} contentEditable={false}>

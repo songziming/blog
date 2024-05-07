@@ -4,6 +4,23 @@ import { Transforms, Editor, Element, Text, Node } from 'slate';
 // 各种编辑都是针对选中部分
 
 
+
+// 清除所有内容，放入一个块元素和一个文本
+const clearAll = (editor) => {
+  Transforms.removeNodes(editor, {
+    at: [],
+    match: n => Element.isElement(n),
+    mode: 'all',
+  });
+  Transforms.insertNodes(editor, {
+    type: 'paragraph',
+    children: [{text: 'A new string of text.'}],
+  }, {
+    at: [0],
+  });
+};
+
+
 //------------------------------------------------------------------------------
 // 对 Leaf 样式的改动
 //------------------------------------------------------------------------------
@@ -139,6 +156,6 @@ const toListBlock = (editor) => {
 
 
 export {
-  toggleMark, unsetMarks,
+  clearAll, toggleMark, unsetMarks,
   toCodeBlock, toParagraph, toggleCode, toListBlock, toHeader,
 };

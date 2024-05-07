@@ -26,6 +26,8 @@ const SlateToolBar = () => {
     }
   }, [editor]);
 
+  const cleanAST = useCallback(() => cmd.clearAll(editor), [editor]);
+
   const dropMarks = useCallback(() => cmd.unsetMarks(editor, ['bold', 'italic', 'underline']), [editor]);
 
   const convParagraph = useCallback(() => cmd.toParagraph(editor), [editor]);
@@ -42,6 +44,7 @@ const SlateToolBar = () => {
   return <div className="toolbar">
     <span>Tools: </span>
     <button onClick={showAST}>show</button>
+    <button onClick={cleanAST}>clear</button>
     <button onClick={dropMarks}>drop</button>
     <button onClick={convParagraph}>para</button>
     <button onClick={convHeader1}>H1</button>
