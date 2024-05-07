@@ -41,7 +41,7 @@ const renderLeaf = props => <span {...props.attributes} style={{
 
 const getText = (node) => {
     if (Element.isElement(node) && node.type === 'paragraph') {
-        return node.children[0].text;
+        return node.children[0].text; // return node.code;
     } else {
         return Node.string(node);
     }

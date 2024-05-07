@@ -110,6 +110,8 @@ const toCodeBlock = (editor) => {
   Transforms.removeNodes(editor);
   Transforms.insertNodes(editor, {
     type: 'codeblock',
+    // code: text,
+    lang: 'cpp',
     children: [{text: text}], // 代码放在一个 Leaf 里面
     // content: text
   });

@@ -1,5 +1,5 @@
-// import { Transforms } from 'slate';
-// import { useSlateStatic, ReactEditor } from 'slate-react';
+import { Transforms, Text } from 'slate';
+import { useSlateStatic, ReactEditor } from 'slate-react';
 // import { useCallback } from 'react';
 
 import { useCallback, useState } from "react";
@@ -14,34 +14,31 @@ import ContentEditable from "react-contenteditable";
 
 // 代码块
 const SlateCodeBlock = ({element, attributes}) => {
-  // const editor = useSlateStatic();
+  const editor = useSlateStatic();
 
-  // const handleChangeLang = useCallback(e => {
-  //   const lang = e.target.value;
-  //   const path = ReactEditor.findPath(editor, element);
-  //   Transforms.setNodes(editor, { lang }, { at: path });
-  // }, [editor, element]);
-
-  // console.log(element.children[0]);
-  // console.log(children[0]);
-
-  // TODO 代码段正文绑定了 state，但 contentEditable 无法被 react 管理
-  //      可以使用第三方代码编辑器，如 CodeMirror、Monaco
-
-  // TODO 选中代码块内容，selection 不会体现在 slate model 中
-  //      应该监听 onSelect 事件，在全局状态（react context）里记录下当前选中的 block
-
-  const [curCode, setCode] = useState(element.children[0].text);
-  const inner = `<pre><code>${curCode}</code></pre>`;
-
-  const handleChange = useCallback(ev => {
-    setCode({html: ev.target.value});
-  }, []);
+  const path = ReactEditor.findPath(editor, element);
 
   // 必须从 element 里面取 children 元素，这样取出的才是渲染之前的 Text
-  return <div className="block" {...attributes} contentEditable={false}>
-    {/* <pre><code contentEditable={true}>{element.children[0].text}</code></pre> */}
-    <ContentEditable html={inner} onChange={handleChange} />
+  const [curCode, setCode] = useState(element.children[0].text);
+
+  // 代码块内部输入回车无法创建新的 block，而是在 code 内部新增一行
+  // 但是代码块不应该有软换行，如果输入软换行，则创建一个新的段落（无效）
+  const handleChange = useCallback(ev => {
+    // const nev = ev.nativeEvent;
+    // if ('insertLineBreak' === nev.inputType) {
+    //   console.log('this is soft line break');
+    //   nev.preventDefault();
+    //   nev.stopPropagation();
+    //   return true;
+    // }
+    Transforms.setNodes(editor, {text: ev.target.value}, { at: [...path, 0], match: n=>Text.isText(n) });
+    setCode(ev.target.value);
+  }, [editor, path]);
+
+  // 必须使用 data-slate-editor="true" 标记这个元素，否则 slate 会尝试自己修改 model
+  return <div className="block code" {...attributes} contentEditable={false} data-slate-editor="true">
+     {/*<pre><code contentEditable={true}>{element.children[0].text}</code></pre> */}
+    <ContentEditable html={curCode} onChange={handleChange} data-slate-node="element" />
   </div>;
 };
 

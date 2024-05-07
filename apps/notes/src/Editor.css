@@ -55,8 +55,13 @@
   border-radius: 2px;
 }
 
-pre {
+/*pre {
   margin: 0;
+}*/
+
+.block.code {
+  font-family: monospace;
+  white-space: pre-wrap;
 }
 
 
