@@ -47,7 +47,10 @@ from jinja2 import Environment, FileSystemLoader
 
 import os
 import glob
-from datetime import date
+import shutil
+# import datetime
+# import datetime.now
+from datetime import datetime,date
 import subprocess
 import json
 
@@ -108,6 +111,9 @@ class MarkdownItem:
         self.draft = meta.get('draft', False)
         self.tags = meta.get('tags', meta.get('keywords', []))
 
+    def get_permalink(self, base_dir):
+        return os.path.join(base_dir, self.link, 'index.html')
+
     def generate(self):
         self._pandoc_write(self.ast)
 
@@ -116,27 +122,54 @@ class Site:
     def __init__(self, base):
         self.base = base
         self.posts = []
-        self.assets = []    # (source, target)
+        self.assets = {} # local_path -> url
         self.env = Environment(loader=FileSystemLoader('templates'))
 
-    def to_rela(self, file):
-        real = os.path.realpath(file)
-        rela = os.path.relpath(real, self.base)
-        return real, rela
+    def add_asset(self, file, url):
+        if file not in self.assets:
+            self.assets[file] = url
 
-    def add_asset(self, file):
-        file = os.path.realpath(file)
-        file = os.path.relpath(file, self.base)
-        self.assets.push(file)
+    def add_post(self, post):
+        self.posts.append(post)
 
-    def add_item(self, file):
-        # TODO 根据文件后缀决定创建哪种类型的 item
-        ext = os.path.splitext(file)[-1]
-        match ext:
-            case '.md':
-                self.posts.append(MarkdownItem)
-            case _:
-                self.assets.append(file)
+    def build(self, output_dir, clean=False):
+        if clean:
+            shutil.rmtree(output_dir, ignore_errors=True)
+        os.makedirs(output_dir, exist_ok=True)
+        self._copy_assets(output_dir)
+        self._build_posts(output_dir)
+        self._build_index(os.path.join(output_dir, 'index.html'))
+
+    def _copy_assets(self, output_dir):
+        for src,dst in self.assets.items():
+            dst = os.path.join(output_dir, dst)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            # if '.css'==os.path.splitext(src)[1]:
+            #     with open(dst, 'w') as f:
+            #         min_css = _css_minify(src)
+            #         f.write(min_css)
+            # else:
+            #     shutil.copy(src, dst)
+            shutil.copy(src, dst)
+
+    def _build_posts(self, output_dir):
+        '''所有文章渲染为 html，写入输出文件'''
+        tmp = self.env.get_template('post.html.jinja')
+        for post in self.posts:
+            ofile = post.get_permalink(output_dir)
+            os.makedirs(os.path.dirname(ofile), exist_ok=True)
+            post.generate()
+            html = tmp.render(title=post.title, site_title='site title', post=post)
+            with open(ofile, 'w', encoding='utf-8') as f:
+                # f.write(minify(html))
+                f.write(html)
+
+    def _build_index(self, index):
+        recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
+        idx = self.env.get_template('index.html.jinja')
+        html = idx.render(title='site title', posts=recents, now=datetime.now())
+        with open(index, 'w', encoding='utf-8') as f:
+            f.write(minify(html))
 
 
 # Pandoc AST 的格式可以参考：
@@ -190,14 +223,29 @@ if '__main__' == __name__:
     parser.add_argument('-o', '--output', default='output', help='output directory')
     parser.add_argument('input', nargs='?', default=os.getcwd(), help='path to blog source')
     args = parser.parse_args()
-
     print(f'input={args.input} output={args.output}, M={args.no_minify}, d={args.draft}')
 
-    mdfiles = glob.glob(os.path.join(args.input, 'posts/*.md'))
-    print(f'found {len(mdfiles)} markdown files')
+    asset_base = os.path.join(args.input, 'assets')
+    template_base = os.path.join(args.input, 'templates')
 
-    if len(mdfiles) > 0:
-        post = MarkdownItem(mdfiles[0], args.input)
-        print(f'file path is {post.file}')
+    site = Site(args.input)
+
+    # 添加资源文件
+    assets = glob.glob(os.path.join(asset_base, 'assets/**'), recursive=True)
+    for a in filter(os.path.isfile, assets):
+        real = os.path.realpath(a)
+        rela = os.path.relpath(real, asset_base)
+        site.add_asset(real, rela)
+
+    # 添加文章
+    mdfiles = glob.glob(os.path.join(args.input, 'posts/*.md'))
+    for md in mdfiles:
+        post = MarkdownItem(md, template_base)
         post.process()
-        print(json.dumps(post.ast['meta']))
+        site.add_post(post)
+
+    # TODO 检查不同文章的 url 是否冲突，如果冲突则添加数字后缀编号
+
+    # TODO 对每个文章的 ast 执行 filter，处理正文
+
+    site.build(args.output)
