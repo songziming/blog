@@ -148,7 +148,6 @@ class Site:
         self.assets = []    # (source, target)
         self.env = Environment(loader=FileSystemLoader('templates'))
 
-
     def add_asset(self, source, target=None):
         if target is None:
             target = source
@@ -239,20 +238,11 @@ if '__main__' == __name__:
     parser.add_argument('-d', '--draft', action='store_true', help='render draft posts')
     args = parser.parse_args()
 
-    # TODO 命令行参数控制是否渲染 draft
     site = Site('songziming.cn')
-
-    # 指定所有资源文件
     for a in filter(os.path.isfile, glob.glob('assets/**', recursive=True)):
         site.add_asset(a, os.path.relpath(a, 'assets'))
-
-    # 指定所有博文
     site.add_posts_in('posts', with_drafts=args.draft)
-
-    # 中间处理
     site.check_permalinks()
     site.filter_documents()
-
-    # 生成
     site.build('output', True)
 
