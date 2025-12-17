@@ -64,8 +64,8 @@ class Post:
 
         filepath = os.path.relpath(file, rela).split(os.sep)
         filebase = os.path.splitext(filepath[-1])[0]
-        self.categories = filepath[:-1]
-        self.slugified_categories = list(map(_slugify, self.categories))
+        self.category = filepath[:-1]
+        self.slugified_category = list(map(_slugify, self.category))
 
         try:
             self.date = datetime.strptime(filebase[:11], '%Y-%m-%d-')
@@ -83,11 +83,13 @@ class Post:
         if 'slug' in meta:
             self.slugified_title = meta['slug']
 
+        self.url = '/'.join(self.slugified_category + [self.slugified_title, ''])
+
     def get_link(self):
-        return '/'.join(['', *self.slugified_categories, self.slugified_title, ''])
+        return '/'.join(['', *self.slugified_category, self.slugified_title, ''])
 
     def get_output(self, html_dir):
-        return os.path.join(html_dir, *self.slugified_categories, self.slugified_title, 'index.html')
+        return os.path.join(html_dir, *self.slugified_category, self.slugified_title, 'index.html')
 
     def render(self):
         self.toc = _pandoc_write(self.ast, PANDOC_TOC)

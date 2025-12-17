@@ -27,6 +27,8 @@ Pandoc 支持 filter，可以对 AST 进行处理。filter 可以用 python，�
 
 # TODO 支持其他类型的页面（jupyter notebook）
 
+# TODO 将每个文件抽象成 item，模仿 nanoc 定义明确的 item 处理流程
+
 
 - [pangu.py](https://github.com/vinta/pangu.py)
 
@@ -54,10 +56,39 @@ from datetime import datetime,date
 import subprocess
 import json
 
+from multiprocessing.pool import ThreadPool
+from tqdm import tqdm
 
 
 
 
+
+
+
+
+
+
+
+
+
+class Item:
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
+        self.url = dst
+    def dirty(self):
+        return os.path.getmtime(self.src) > os.path.getmtime(self.dst)
+    def generate(self):
+        pass
+
+
+
+
+class CssItem(Item):
+    def __init__(self, src, dst):
+        super().__init(src, dst)
+    def generate(self):
+        shutil.copy(self.src, self.dst)
 
 
 
@@ -66,10 +97,13 @@ def _slugify(s):
     '''使用拼音作为 permalink'''
     return s
 
+def minify(s):
+    return s
 
 
 
-class MarkdownItem:
+
+class Post:
     @staticmethod
     def _pandoc_parse(file):
         '''读取 markdown，转换为 json AST'''
@@ -85,37 +119,26 @@ class MarkdownItem:
         res = subprocess.run(cmd, input=json.dumps(ast).encode(), capture_output=True)
         return res.stdout.decode('utf-8')
 
-    def __init__(self, file, base):
+    def __init__(self, file):
         self.file = os.path.realpath(file)
-        self.rela = os.path.relpath(self.file, base)
+        base = os.path.splitext(os.path.basename(self.file))[0]
+        self.date = date.fromisoformat(base[:10])
+        self.link = _slugify(base[11:])
+        self.url = '/'.join([self.link, 'index.html'])
 
     def process(self):
         self.ast = self._pandoc_parse(self.file)
-
-        # 从路径解析分类
-        path = self.rela.split(os.sep)
-        self.categories = path[:-1]
-
-        # 从文件名解析日期、链接
-        base = os.path.splitext(path[-1])[0]
-        try:
-            self.date = date.fromisoformat(base[:10])
-            self.link = _slugify(base[11:])
-        except ValueError:
-            self.date = None
-            self.link = _slugify(base)
-
-        # 从 yaml frontmatter 解析标题、关键词
         meta = json.loads(self._pandoc_write(self.ast, 'templates/meta.json'))
         self.title = meta['title']
         self.draft = meta.get('draft', False)
         self.tags = meta.get('tags', meta.get('keywords', []))
+        # TODO run ast filter
+        self.toc = self._pandoc_write(self.ast, 'templates/toc.html')
+        self.html = self._pandoc_write(self.ast)
 
-    def get_permalink(self, base_dir):
-        return os.path.join(base_dir, self.link, 'index.html')
 
-    def generate(self):
-        self._pandoc_write(self.ast)
+    # def get_permalink(self, base_dir):
+    #     return os.path.join(base_dir, self.link, 'index.html')
 
 
 class Site:
@@ -150,19 +173,20 @@ class Site:
             #         f.write(min_css)
             # else:
             #     shutil.copy(src, dst)
+            # print(f'copying {src} to {dst}')
             shutil.copy(src, dst)
 
     def _build_posts(self, output_dir):
         '''所有文章渲染为 html，写入输出文件'''
         tmp = self.env.get_template('post.html.jinja')
         for post in self.posts:
-            ofile = post.get_permalink(output_dir)
+            ofile = os.path.join(output_dir, post.url)
+            print(f'processing {ofile}')
             os.makedirs(os.path.dirname(ofile), exist_ok=True)
-            post.generate()
+            # post.generate()
             html = tmp.render(title=post.title, site_title='site title', post=post)
             with open(ofile, 'w', encoding='utf-8') as f:
-                # f.write(minify(html))
-                f.write(html)
+                f.write(minify(html))
 
     def _build_index(self, index):
         recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
@@ -220,6 +244,7 @@ if '__main__' == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--draft', action='store_true', help='render draft posts')
     parser.add_argument('-M', '--no-minify', action='store_true', help='do not minify')
+    parser.add_argument('-j', '--jobs', default=os.cpu_count(), help='number of threads')
     parser.add_argument('-o', '--output', default='output', help='output directory')
     parser.add_argument('input', nargs='?', default=os.getcwd(), help='path to blog source')
     args = parser.parse_args()
@@ -231,7 +256,7 @@ if '__main__' == __name__:
     site = Site(args.input)
 
     # 添加资源文件
-    assets = glob.glob(os.path.join(asset_base, 'assets/**'), recursive=True)
+    assets = glob.glob(os.path.join(asset_base, '**'), recursive=True)
     for a in filter(os.path.isfile, assets):
         real = os.path.realpath(a)
         rela = os.path.relpath(real, asset_base)
@@ -240,9 +265,11 @@ if '__main__' == __name__:
     # 添加文章
     mdfiles = glob.glob(os.path.join(args.input, 'posts/*.md'))
     for md in mdfiles:
-        post = MarkdownItem(md, template_base)
-        post.process()
-        site.add_post(post)
+        site.add_post(Post(md))
+
+    # 并行处理每个文章
+    with ThreadPool(args.jobs) as pool:
+        list(tqdm(pool.imap(Post.process, site.posts), total=len(site.posts)))
 
     # TODO 检查不同文章的 url 是否冲突，如果冲突则添加数字后缀编号
 
