@@ -38,6 +38,12 @@ pip install pandocfilters pangu pygments jinja2
 
 
 
+import os
+import glob
+import shutil
+from datetime import datetime,date
+import subprocess
+import json
 import argparse
 
 import pandocfilters as pf
@@ -49,15 +55,6 @@ from jinja2 import Environment, FileSystemLoader
 from htmlmin import minify
 from rcssmin import cssmin
 from jsmin import jsmin
-
-import os
-import glob
-import shutil
-# import datetime
-# import datetime.now
-from datetime import datetime,date
-import subprocess
-import json
 
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
@@ -72,7 +69,8 @@ from tqdm import tqdm
 
 
 
-
+PANDOC_TEMP_META = 'templates/meta.json'
+PANDOC_TEMP_TOC = 'templates/toc.html'
 
 
 
@@ -85,172 +83,51 @@ def _slugify(s):
 
 
 class Item:
-    def __init__(self, src, url):
+    def __init__(self, src, dst, url):
         self.src = src
+        self.dst = dst
         self.url = url
-    def process(self, site):
-        pass
-    def generate(self, site):
-        print(f'copying {self.src} to {self.url}')
-        shutil.copy(site.src_path(self.src), site.dst_path(self.url))
-
+    def generate(self):
+        print(f'copying {self.src} to {self.dst}')
+        shutil.copy(self.src, self.dst)
 
 class CssItem(Item):
-    def __init__(self, src, url):
-        super().__init__(src, url)
-    def process(self, site):
-        print(f'processing css {self.src}')
-        with open(site.src_path(self.src), 'r', encoding='utf-8') as f:
-            self.css = cssmin(f.read())
-    def generate(self, site):
-        print(f'generating css {self.src}')
-        with open(site.dst_path(self.url), 'w', encoding='utf-8') as f:
-            f.write(self.css)
-
-
-class MarkdownItem(Item):
-    @staticmethod
-    def _pandoc_parse(file):
-        '''读取 markdown，转换为 json AST'''
-        cmd = ['pandoc', '-f', 'markdown', '-t', 'json', file]
-        res = subprocess.run(cmd, capture_output=True)
-        return json.loads(res.stdout.decode('utf-8'))
-    @staticmethod
-    def _pandoc_write(ast, tmp=None):
-        '''将 json AST 渲染成 html'''
-        cmd = ['pandoc', '-f', 'json', '-t', 'html5', '--toc', '--eol=lf']
-        cmd += ['--template', tmp] if tmp else []
-        res = subprocess.run(cmd, input=json.dumps(ast).encode(), capture_output=True)
-        return res.stdout.decode('utf-8')
-
-    def __init__(self, src):
-        base = os.path.splitext(os.path.basename(src))[0]
-        self.date = date.fromisoformat(base[:10])
-        super().__init__(src, _slugify(base[11:]) + '/index.html')
-        # self.url = _slugify(base[11:])
-        # self.dst = os.path.join(self.url, 'index.html')
-    def process(self, site):
-        ast = self._pandoc_parse(site.src_path(self.src))
-        tmp_meta = site.src_path('templates/meta.json')
-        tmp_toc = site.src_path('templates/toc.html')
-        meta = json.loads(self._pandoc_write(ast, tmp_meta))
-
-        self.title = meta['title']
-        self.draft = meta.get('draft', False)
-        self.tags = meta.get('tags', meta.get('keywords', []))
-
-        # TODO run ast filter
-        self.toc = self._pandoc_write(ast, tmp_toc)
-        self.html = self._pandoc_write(ast)
-
-    # 使用 jinja 渲染html页面
-    def generate(self, site):
-        html = site.tmp.render(title=self.title, site_title='site title', post=self)
-        with open(site.dst_path(self.url), 'w', encoding='utf-8') as f:
-            f.write(minify(html))
-
-
-
-
-
-def create_item(src, url):
-    match os.path.splitext(src)[-1]:
-        # case '.md':     return MarkdownItem(src, url)
-        case '.css':    return CssItem(src, url)
-        case _:         return Item(src, url)
-
-class Site:
-    def __init__(self, base):
-        self.src_dir = base
-        self.out_dir = os.path.join(base, 'output')
-        self.posts = []
-        self.assets = []
-        # self.assets = {} # local_path -> url
-        # self.env = Environment(loader=FileSystemLoader(os.path.join(base, 'templates')))
-
-    def src_path(self, *args):
-        return os.path.join(self.src_dir, *args)
-    def dst_path(self, *args):
-        return os.path.join(self.out_dir, *args)
-
-    def add_items(self):
-        assets = glob.glob(self.src_path('assets', '**'), recursive=True)
-        for asset in filter(os.path.isfile, assets):
-            rela = os.path.relpath(asset, self.src_path('assets'))
-            self.assets.append(create_item(asset, rela))
-        posts = glob.glob(self.src_path('posts', '**', '*.md'), recursive=True)
-        for post in posts:
-            self.posts.append(MarkdownItem(post))
-
-    # 创建各个item需要的目录
-    def prepare_dirs(self):
-        middirs = set([self.dst_path(os.path.dirname(item.url)) for item in self.assets+self.posts])
-        for d in middirs:
-            os.makedirs(d, exist_ok=True)
-
-    def process(self):
-        for item in self.assets+self.posts:
-            item.process(self)
-
+    def __init__(self, src, dst, url):
+        super().__init__(src, dst, url)
     def generate(self):
-        env = Environment(loader=FileSystemLoader(self.src_path('templates')))
-        self.tmp = env.get_template('post.html.jinja')
-        for item in self.assets+self.posts:
-            item.generate(self)
+        print(f'processing css {self.src}')
+        with open(self.src, 'r', encoding='utf-8') as f:
+            style = cssmin(f.read())
+        with open(self.dst, 'w', encoding='utf-8') as f:
+            f.write(style)
 
-        # 还要生成一个 index 页面
-        recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
-        idx = env.get_template('index.html.jinja')
-        html = idx.render(title='site title', posts=recents, now=datetime.now())
-        with open(site.dst_path('index.html'), 'w', encoding='utf-8') as f:
-            f.write(minify(html))
+class JsItem(Item):
+    def __init__(self, src, dst, url):
+        super().__init__(src, dst, url)
+    def generate(self):
+        print(f'processing js {self.src}')
+        with open(self.src, 'r', encoding='utf-8') as f:
+            script = jsmin(f.read())
+        with open(self.dst, 'w', encoding='utf-8') as f:
+            f.write(script)
 
-    # def add_asset(self, file, url):
-    #     if file not in self.assets:
-    #         self.assets[file] = url
+def create_item(src, dst, url):
+    match os.path.splitext(src)[-1]:
+        case '.css':    return CssItem(src, dst, url)
+        case '.js':     return JsItem(src, dst, url)
+        case _:         return Item(src, dst, url)
 
-    # def add_post(self, post):
-    #     self.posts.append(post)
 
-    # def build(self, output_dir, clean=False):
-    #     if clean:
-    #         shutil.rmtree(output_dir, ignore_errors=True)
-    #     os.makedirs(output_dir, exist_ok=True)
-    #     self._copy_assets(output_dir)
-    #     self._build_posts(output_dir)
-    #     self._build_index(os.path.join(output_dir, 'index.html'))
 
-    # def _copy_assets(self, output_dir):
-    #     for src,dst in self.assets.items():
-    #         dst = os.path.join(output_dir, dst)
-    #         os.makedirs(os.path.dirname(dst), exist_ok=True)
-    #         shutil.copy(src, dst)
 
-    # def _build_posts(self, output_dir):
-    #     '''所有文章渲染为 html，写入输出文件'''
-    #     tmp = self.env.get_template('post.html.jinja')
-    #     for post in self.posts:
-    #         ofile = os.path.join(output_dir, post.url)
-    #         print(f'processing {ofile}')
-    #         os.makedirs(os.path.dirname(ofile), exist_ok=True)
-    #         # post.generate()
-    #         html = tmp.render(title=post.title, site_title='site title', post=post)
-    #         with open(ofile, 'w', encoding='utf-8') as f:
-    #             f.write(minify(html))
 
-    # def _build_index(self, index):
-    #     recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
-    #     idx = self.env.get_template('index.html.jinja')
-    #     html = idx.render(title='site title', posts=recents, now=datetime.now())
-    #     with open(index, 'w', encoding='utf-8') as f:
-    #         f.write(minify(html))
 
 
 # Pandoc AST 的格式可以参考：
 # https://github.com/mvhenderson/pandoc-filter-node/blob/master/index.ts
 # 处理 AST，修改 permalink 为可读版本，整理静态资源链接，代码块着色，中英文间隔
 # 处理 graphviz 绘图
-def _ast_filter(key, value, format, site):
+def _ast_filter(key, value, post, site):
     if key == 'Str':
         return pf.Str(pangu.spacing_text(value))
     elif key == 'Header':
@@ -265,12 +142,9 @@ def _ast_filter(key, value, format, site):
             return # 外部链接，不需要修改
 
         # 应该基于 posts 目录、文件所在目录分别计算两个相对路径
-        if url not in _ast_filter.filemap:
-            url = os.path.realpath(os.path.join(_ast_filter.filedir, url))
-        if url in _ast_filter.filemap:
-            url = _ast_filter.filemap[url]
-        else:
-            print('cannot resolve link target', url)
+        # 将相对路径改成 url，如果遇到未记录的文件，则增加引用计数
+        res = os.path.join(os.path.dirname(post.src), url)
+        url = site.add_resource(res)
         return pf.Link(attr, inlines, [url, title])
 
     elif key == 'CodeBlock':
@@ -290,45 +164,131 @@ def _ast_filter(key, value, format, site):
 
 
 
+
+
+class MarkdownItem:
+    @staticmethod
+    def _pandoc_parse(file):
+        '''读取 markdown，转换为 json AST'''
+        cmd = ['pandoc', '-f', 'markdown', '-t', 'json', file]
+        res = subprocess.run(cmd, capture_output=True)
+        return json.loads(res.stdout.decode('utf-8'))
+    @staticmethod
+    def _pandoc_write(ast, tmp=None):
+        '''将 json AST 渲染成 html'''
+        cmd = ['pandoc', '-f', 'json', '-t', 'html5', '--toc', '--eol=lf']
+        cmd += ['--template', tmp] if tmp else []
+        res = subprocess.run(cmd, input=json.dumps(ast).encode(), capture_output=True)
+        return res.stdout.decode('utf-8')
+
+    def __init__(self, src, outdir):
+        base = os.path.splitext(os.path.basename(src))[0]
+        self.date = date.fromisoformat(base[:10])
+        self.src = src
+        self.url = _slugify(base[11:])
+        self.dst = os.path.join(outdir, self.url, 'index.html')
+
+    def process(self, site):
+        ast = self._pandoc_parse(self.src)
+        meta = json.loads(self._pandoc_write(ast, 'templates/meta.json'))
+
+        self.title = meta['title']
+        self.draft = meta.get('draft', False)
+        self.tags = meta.get('tags', meta.get('keywords', []))
+
+        ast = pf.walk(ast, _ast_filter, self, site)
+        self.toc = self._pandoc_write(ast, 'templates/toc.html')
+        self.html = self._pandoc_write(ast)
+
+
+
+
+
+
+class Site:
+    def __init__(self, title, src, out):
+        self.title = title
+        self.src_dir = src
+        self.out_dir = out
+        self.posts = []
+        self.assets = []
+
+    def add_items(self):
+        asset_base = os.path.join(self.src_dir, 'assets')
+        assets = glob.glob('**', root_dir=asset_base, recursive=True)
+        for url in assets:
+            src = os.path.realpath(os.path.join(asset_base, url))
+            if os.path.isfile(src):
+                dst = os.path.join(self.out_dir, url)
+                self.assets.append(create_item(src, dst, url))
+        post_pattern = os.path.join(self.src_dir, 'posts', '**', '*.md')
+        for src in glob.glob(post_pattern, recursive=True):
+            self.posts.append(MarkdownItem(os.path.realpath(src), self.out_dir))
+
+    # 文件引用了静态文件，未被记录，将文件记录下来
+    # TODO 引用计数？
+    def add_resource(self, res, url=None, dst=None):
+        src = os.path.realpath(res)
+        found = filter(lambda x: x.src==src, self.assets)
+        if 0 != len(found):
+            return found[0].url
+        if url is None:
+            url = os.path.join('files', os.path.basename(src))
+        if dst is None:
+            dst = os.path.join(self.out_dir, url)
+        self.assets.append(create_item(src, dst, url))
+        return url
+
+    # 创建各个item需要的目录
+    def prepare_dirs(self):
+        target_dirs = [os.path.dirname(x.dst) for x in self.assets+self.posts]
+        for d in set(target_dirs):
+            os.makedirs(d, exist_ok=True)
+
+    def process(self, njobs):
+        call_process = lambda p: p.process(self)
+        with ThreadPool(njobs) as pool:
+            list(tqdm(pool.imap(call_process, self.posts), total=len(self.posts)))
+
+    def generate(self):
+        for item in self.assets:
+            item.generate()
+
+        # post 和 index 都可以生成 html，可以共享一部分逻辑
+        env = Environment(loader=FileSystemLoader('templates'))
+        post_tmp = env.get_template('post.html.jinja')
+        for post in self.posts:
+            html = post_tmp.render(title=post.title, site_title=self.title, post=post)
+            with open(os.path.join(self.out_dir, post.url, 'index.html'), 'w', encoding='utf-8') as f:
+                f.write(minify(html))
+
+        # 还要生成一个 index 页面
+        recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
+        idx_tmp = env.get_template('index.html.jinja')
+        html = idx_tmp.render(title=self.title, posts=recents, now=datetime.now())
+        with open(os.path.join(self.out_dir, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(minify(html))
+
+
+
+
+
+
+
 if '__main__' == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--draft', action='store_true', help='render draft posts')
     parser.add_argument('-M', '--no-minify', action='store_true', help='do not minify')
+    parser.add_argument('-c', '--clean', action='store_true', help='cleanup')
     parser.add_argument('-j', '--jobs', default=os.cpu_count(), help='number of threads')
     parser.add_argument('-o', '--output', default='output', help='output directory')
     parser.add_argument('input', nargs='?', default=os.getcwd(), help='path to blog source')
     args = parser.parse_args()
-    print(f'input={args.input} output={args.output}, M={args.no_minify}, d={args.draft}')
+    # print(f'input={args.input} output={args.output}, M={args.no_minify}, d={args.draft}')
 
-    asset_base = os.path.join(args.input, 'assets')
-    template_base = os.path.join(args.input, 'templates')
-
-    site = Site(args.input)
-
-    # # 添加资源文件
-    # assets = glob.glob(os.path.join(asset_base, '**'), recursive=True)
-    # for a in filter(os.path.isfile, assets):
-    #     real = os.path.realpath(a)
-    #     rela = os.path.relpath(real, asset_base)
-    #     site.add_asset(real, rela)
-
-    # # 添加文章
-    # mdfiles = glob.glob(os.path.join(args.input, 'posts/*.md'))
-    # for md in mdfiles:
-    #     site.add_post(Post(md))
-
-    # # 并行处理每个文章
-    # with ThreadPool(args.jobs) as pool:
-    #     list(tqdm(pool.imap(Post.process, site.posts), total=len(site.posts)))
-
-    # # TODO 检查不同文章的 url 是否冲突，如果冲突则添加数字后缀编号
-
-    # # TODO 对每个文章的 ast 执行 filter，处理正文
-
-    # site.build(args.output)
-
+    site = Site('songziming.cn', args.input, args.output)
     site.add_items()
     print(f'{len(site.assets)} assets, {len(site.posts)} posts')
-    site.process()
+    site.process(args.jobs)
     site.prepare_dirs()
     site.generate()

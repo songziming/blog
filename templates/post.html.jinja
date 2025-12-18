@@ -1,5 +1,12 @@
 {% extends "base.html.jinja" %}
 
+
+{% block style %}
+<link rel="stylesheet" href="/css/pygments_default.css">
+<link rel="stylesheet" href="/css/pygments_fruity.css">
+{% endblock %}
+
+
 {% block content %}
 <h1 class="article-title">{{post.title}}</h1>
 <div class="article-meta">
