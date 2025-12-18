@@ -1,9 +1,11 @@
 ---
 title: 关于 Markdown 样式的完整案例
-draft: true
+# draft: true
 ---
 
 测试各种 markdown 标记的渲染效果，本页面可以检查样式表。
+
+![](./demo.excalidraw.svg)
 
 # 标题
 
@@ -37,6 +39,12 @@ Pandoc Markdown 有几个特殊样式，是标准 markdown 里面没有的。
 [^1]: 类似于 LaTeX，我们可以给脚注起个名字，不必用数字编号
 
 > 能否使用脚注实现可折叠块[^togglelist]？
+
+~~~py
+# 代码块可以高亮
+s = "代码里面english和中文不能使用pangu.py自动分词"
+print(s)
+~~~
 
 [^togglelist]: 就像 Notion 一样，列表元素可以收起，可以展开
 

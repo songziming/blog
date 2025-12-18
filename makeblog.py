@@ -45,6 +45,10 @@ from datetime import datetime,date
 import subprocess
 import json
 import argparse
+from urllib.parse import quote,urljoin
+
+from multiprocessing.pool import ThreadPool
+# from tqdm import tqdm
 
 import pandocfilters as pf
 import pangu
@@ -55,9 +59,6 @@ from jinja2 import Environment, FileSystemLoader
 from htmlmin import minify
 from rcssmin import cssmin
 from jsmin import jsmin
-
-from multiprocessing.pool import ThreadPool
-from tqdm import tqdm
 
 
 
@@ -71,14 +72,9 @@ from tqdm import tqdm
 
 PANDOC_TEMP_META = 'templates/meta.json'
 PANDOC_TEMP_TOC = 'templates/toc.html'
-
-
-
-
-
-def _slugify(s):
-    '''使用拼音作为 permalink'''
-    return s
+PATH_POSTS = 'posts'
+PATH_ASSETS = 'assets'
+PATH_JINJA_TEMPS = 'templates'
 
 
 
@@ -122,44 +118,46 @@ def create_item(src, dst, url):
 
 
 
+def handle_link_image(value):
+    if url.startswith('http://') or url.startswith('https://'):
+        return # 外部链接，不需要修改
+    res = os.path.join(os.path.dirname(post.src), url)
+    url = '/' + site.add_resource(res)
+
 
 # Pandoc AST 的格式可以参考：
 # https://github.com/mvhenderson/pandoc-filter-node/blob/master/index.ts
 # 处理 AST，修改 permalink 为可读版本，整理静态资源链接，代码块着色，中英文间隔
 # 处理 graphviz 绘图
 def _ast_filter(key, value, post, site):
-    if key == 'Str':
-        return pf.Str(pangu.spacing_text(value))
-    elif key == 'Header':
-        level,attr,inlines = value
-        id,classes,kv = attr
-        return pf.Header(level, [_slugify(id), classes, kv], inlines)
-
-    elif key in ['Link', 'Image']:
-        attr,inlines,target = value
-        url,title = target
+    def handle_link_image(value):
+        attr,inlines,[url,title] = value
         if url.startswith('http://') or url.startswith('https://'):
-            return # 外部链接，不需要修改
-
-        # 应该基于 posts 目录、文件所在目录分别计算两个相对路径
-        # 将相对路径改成 url，如果遇到未记录的文件，则增加引用计数
+            return value # 外部链接，不需要修改
         res = os.path.join(os.path.dirname(post.src), url)
-        url = site.add_resource(res)
-        return pf.Link(attr, inlines, [url, title])
-
-    elif key == 'CodeBlock':
-        # 使用 pygments 对代码着色，不使用 pandoc 自带的着色逻辑
-        attr,code = value
-        id,classes,kv = attr
-        try:
-            if 0 == len(classes):
-                lexer = guess_lexer(code)
-            else:
-                lexer = get_lexer_by_name(classes[0])
-        except:
-            lexer = TextLexer()
-        return pf.RawBlock('html', highlight(code, lexer, HtmlFormatter()))
-
+        url = '/' + site.add_resource(res)
+        return attr,inlines,(url,title)
+    match key:
+        case 'Str':
+            return pf.Str(pangu.spacing_text(value))
+        case 'Header':
+            level,[id_,classes,kv],inlines = value
+            # id_,classes,kv = attr
+            return pf.Header(level, [quote(id_), classes, kv], inlines)
+        case 'Link': return pf.Link(*handle_link_image(value))
+        case 'Image': return pf.Image(*handle_link_image(value))
+        case 'CodeBlock':
+            # 使用 pygments 对代码着色，不使用 pandoc 自带的着色逻辑
+            [id_,classes,kv],code = value
+            # id_,classes,kv = attr
+            try:
+                if 0 == len(classes):
+                    lexer = guess_lexer(code)
+                else:
+                    lexer = get_lexer_by_name(classes[0])
+            except:
+                lexer = TextLexer()
+            return pf.RawBlock('html', highlight(code, lexer, HtmlFormatter()))
 
 
 
@@ -185,19 +183,20 @@ class MarkdownItem:
         base = os.path.splitext(os.path.basename(src))[0]
         self.date = date.fromisoformat(base[:10])
         self.src = src
-        self.url = _slugify(base[11:])
+        self.url = quote(base[11:])
         self.dst = os.path.join(outdir, self.url, 'index.html')
 
     def process(self, site):
+        print(f'rendering {self.src}')
         ast = self._pandoc_parse(self.src)
-        meta = json.loads(self._pandoc_write(ast, 'templates/meta.json'))
+        meta = json.loads(self._pandoc_write(ast, PANDOC_TEMP_META))
 
         self.title = meta['title']
         self.draft = meta.get('draft', False)
         self.tags = meta.get('tags', meta.get('keywords', []))
 
         ast = pf.walk(ast, _ast_filter, self, site)
-        self.toc = self._pandoc_write(ast, 'templates/toc.html')
+        self.toc = self._pandoc_write(ast, PANDOC_TEMP_TOC)
         self.html = self._pandoc_write(ast)
 
 
@@ -214,14 +213,14 @@ class Site:
         self.assets = []
 
     def add_items(self):
-        asset_base = os.path.join(self.src_dir, 'assets')
+        asset_base = os.path.join(self.src_dir, PATH_ASSETS)
         assets = glob.glob('**', root_dir=asset_base, recursive=True)
         for url in assets:
             src = os.path.realpath(os.path.join(asset_base, url))
             if os.path.isfile(src):
                 dst = os.path.join(self.out_dir, url)
                 self.assets.append(create_item(src, dst, url))
-        post_pattern = os.path.join(self.src_dir, 'posts', '**', '*.md')
+        post_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.md')
         for src in glob.glob(post_pattern, recursive=True):
             self.posts.append(MarkdownItem(os.path.realpath(src), self.out_dir))
 
@@ -230,10 +229,10 @@ class Site:
     def add_resource(self, res, url=None, dst=None):
         src = os.path.realpath(res)
         found = filter(lambda x: x.src==src, self.assets)
-        if 0 != len(found):
+        if any(found):
             return found[0].url
         if url is None:
-            url = os.path.join('files', os.path.basename(src))
+            url = urljoin('files', os.path.basename(src))
         if dst is None:
             dst = os.path.join(self.out_dir, url)
         self.assets.append(create_item(src, dst, url))
@@ -248,16 +247,21 @@ class Site:
     def process(self, njobs):
         call_process = lambda p: p.process(self)
         with ThreadPool(njobs) as pool:
-            list(tqdm(pool.imap(call_process, self.posts), total=len(self.posts)))
+            # list(tqdm(pool.imap(call_process, self.posts), total=len(self.posts)))
+            list(pool.imap(call_process, self.posts))
+
+    def drop_drafts(self):
+        self.posts = [p for p in self.posts if not p.draft]
 
     def generate(self):
         for item in self.assets:
             item.generate()
 
         # post 和 index 都可以生成 html，可以共享一部分逻辑
-        env = Environment(loader=FileSystemLoader('templates'))
+        env = Environment(loader=FileSystemLoader(PATH_JINJA_TEMPS))
         post_tmp = env.get_template('post.html.jinja')
         for post in self.posts:
+            print(f'generating {post.url}')
             html = post_tmp.render(title=post.title, site_title=self.title, post=post)
             with open(os.path.join(self.out_dir, post.url, 'index.html'), 'w', encoding='utf-8') as f:
                 f.write(minify(html))
@@ -278,7 +282,7 @@ class Site:
 if '__main__' == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--draft', action='store_true', help='render draft posts')
-    parser.add_argument('-M', '--no-minify', action='store_true', help='do not minify')
+    # parser.add_argument('-M', '--no-minify', action='store_true', help='do not minify')
     parser.add_argument('-c', '--clean', action='store_true', help='cleanup')
     parser.add_argument('-j', '--jobs', default=os.cpu_count(), help='number of threads')
     parser.add_argument('-o', '--output', default='output', help='output directory')
@@ -286,9 +290,13 @@ if '__main__' == __name__:
     args = parser.parse_args()
     # print(f'input={args.input} output={args.output}, M={args.no_minify}, d={args.draft}')
 
+    if args.clean:
+        shutil.rmtree(args.output, ignore_errors=True)
+
     site = Site('songziming.cn', args.input, args.output)
     site.add_items()
-    print(f'{len(site.assets)} assets, {len(site.posts)} posts')
     site.process(args.jobs)
+    if not args.draft:
+        site.drop_drafts()
     site.prepare_dirs()
     site.generate()

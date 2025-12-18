@@ -48,7 +48,7 @@
 /* 深色主体应该实现跨页面 */
 
 :root {
-    --max-width: 780px;
+    --max-width: 960px;
     --background-color: #fff;
     --alt-background-color: #f0f0f0; /* 标题、代码块、表格标题 */
     --code-background-color: #f0f0f0; /* 代码块的背景色 */
