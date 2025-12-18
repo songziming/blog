@@ -34,7 +34,7 @@ jobs:
       - name: Install pandoc
         run: sudo apt-get install pandoc
       - name: Install python modules
-        run: python -m pip install pandocfilters Pygments Jinja2 htmlmin2 rcssmin jsmin
+        run: python -m pip install pandocfilters pangu Pygments Jinja2 htmlmin2 rcssmin jsmin
       - name: Generate website
         run: python makeblog.py
       - name: Setup Pages
