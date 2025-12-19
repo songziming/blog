@@ -25,5 +25,7 @@
 
 
 {% block toc %}
+{% if post.toc -%}
 <aside class="article-side side-toc">{{ post.toc }}</aside>
+{%- endif %}
 {% endblock %}

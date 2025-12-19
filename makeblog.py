@@ -62,6 +62,8 @@ from jsmin import jsmin
 
 
 
+from nbconvert import HTMLExporter
+import nbformat
 
 
 
@@ -162,6 +164,16 @@ def _ast_filter(key, value, post, site):
 
 
 
+class Post:
+    def __init__(self, src, outdir):
+        base = os.path.splitext(os.path.basename(src))[0]
+        self.date = date.fromisoformat(base[:10])
+        self.src = src
+        self.url = quote(base[11:])
+        self.dst = os.path.join(outdir, self.url, 'index.html')
+        self.draft = False
+
+
 
 
 class MarkdownItem:
@@ -201,6 +213,28 @@ class MarkdownItem:
 
 
 
+class NotebookItem:
+    '''
+    使用 nbconvert 转换笔记
+    '''
+    def __init__(self, src, outdir):
+        self.src = src
+        base = os.path.splitext(os.path.basename(src))[0]
+        self.date = date.fromisoformat(base[:10])
+        self.url = quote(base[11:])
+        self.dst = os.path.join(outdir, self.url, 'index.html')
+        self.title = base[11:].replace('-', ' ')
+    def process(self, _):
+        print(f'converting {self.src}')
+        with open(self.src, 'r', encoding='utf-8') as f:
+            content = nbformat.read(f, as_version=4)
+        exporter = HTMLExporter(template_name="classic")
+        body, resources = exporter.from_notebook_node(content)
+        self.html = body
+        self.toc = None
+        # 渲染之后的html保存在成员变量中，可以使用 jinja 渲染
+
+
 
 
 
@@ -209,10 +243,11 @@ class Site:
         self.title = title
         self.src_dir = src
         self.out_dir = out
-        self.posts = []
+        self.posts = [] # markdown
+        self.notes = [] # jupyter notebook
         self.assets = []
 
-    def add_items(self):
+    def add_items(self, add_nb=False):
         asset_base = os.path.join(self.src_dir, PATH_ASSETS)
         assets = glob.glob('**', root_dir=asset_base, recursive=True)
         for url in assets:
@@ -220,9 +255,13 @@ class Site:
             if os.path.isfile(src):
                 dst = os.path.join(self.out_dir, url)
                 self.assets.append(create_item(src, dst, url))
-        post_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.md')
-        for src in glob.glob(post_pattern, recursive=True):
+        md_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.md')
+        for src in glob.glob(md_pattern, recursive=True):
             self.posts.append(MarkdownItem(os.path.realpath(src), self.out_dir))
+        if add_nb:
+            nb_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.ipynb')
+            for src in glob.glob(nb_pattern, recursive=True):
+                self.notes.append(NotebookItem(os.path.realpath(src), self.out_dir))
 
     # 文件引用了静态文件，未被记录，将文件记录下来
     # TODO 引用计数？
@@ -240,7 +279,7 @@ class Site:
 
     # 创建各个item需要的目录
     def prepare_dirs(self):
-        target_dirs = [os.path.dirname(x.dst) for x in self.assets+self.posts]
+        target_dirs = [os.path.dirname(x.dst) for x in self.assets+self.posts+self.notes]
         for d in set(target_dirs):
             os.makedirs(d, exist_ok=True)
 
@@ -248,7 +287,7 @@ class Site:
         call_process = lambda p: p.process(self)
         with ThreadPool(njobs) as pool:
             # list(tqdm(pool.imap(call_process, self.posts), total=len(self.posts)))
-            list(pool.imap(call_process, self.posts))
+            list(pool.imap(call_process, self.posts+self.notes))
 
     def drop_drafts(self):
         self.posts = [p for p in self.posts if not p.draft]
@@ -260,14 +299,14 @@ class Site:
         # post 和 index 都可以生成 html，可以共享一部分逻辑
         env = Environment(loader=FileSystemLoader(PATH_JINJA_TEMPS))
         post_tmp = env.get_template('post.html.jinja')
-        for post in self.posts:
+        for post in self.posts + self.notes:
             print(f'generating {post.url}')
             html = post_tmp.render(title=post.title, site_title=self.title, post=post)
             with open(os.path.join(self.out_dir, post.url, 'index.html'), 'w', encoding='utf-8') as f:
                 f.write(minify(html))
 
         # 还要生成一个 index 页面
-        recents = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
+        recents = list(sorted(self.posts+self.notes, key=lambda p: p.date, reverse=True))
         idx_tmp = env.get_template('index.html.jinja')
         html = idx_tmp.render(title=self.title, posts=recents, now=datetime.now())
         with open(os.path.join(self.out_dir, 'index.html'), 'w', encoding='utf-8') as f:
@@ -282,13 +321,11 @@ class Site:
 if '__main__' == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--draft', action='store_true', help='render draft posts')
-    # parser.add_argument('-M', '--no-minify', action='store_true', help='do not minify')
     parser.add_argument('-c', '--clean', action='store_true', help='cleanup')
     parser.add_argument('-j', '--jobs', default=os.cpu_count(), help='number of threads')
     parser.add_argument('-o', '--output', default='output', help='output directory')
     parser.add_argument('input', nargs='?', default=os.getcwd(), help='path to blog source')
     args = parser.parse_args()
-    # print(f'input={args.input} output={args.output}, M={args.no_minify}, d={args.draft}')
 
     if args.clean:
         shutil.rmtree(args.output, ignore_errors=True)

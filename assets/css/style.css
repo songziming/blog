@@ -61,6 +61,7 @@
     --code-span-color: #cb4b16; /* 行内代码前景色 */
 }
 
+@media (prefers-color-scheme: dark) {
 .dark {
     --background-color: #202124;
     --alt-background-color: #303134;
@@ -70,6 +71,7 @@
     --splitter-color: #3c4043;
     --text-color: #e8eaed;
     --code-span-color: #ff4689;
+}
 }
 
 body {
