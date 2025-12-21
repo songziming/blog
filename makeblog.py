@@ -119,14 +119,6 @@ def create_item(src, dst, url):
 
 
 
-
-def handle_link_image(value):
-    if url.startswith('http://') or url.startswith('https://'):
-        return # 外部链接，不需要修改
-    res = os.path.join(os.path.dirname(post.src), url)
-    url = '/' + site.add_resource(res)
-
-
 # Pandoc AST 的格式可以参考：
 # https://github.com/mvhenderson/pandoc-filter-node/blob/master/index.ts
 # 处理 AST，修改 permalink 为可读版本，整理静态资源链接，代码块着色，中英文间隔
@@ -247,7 +239,12 @@ class Site:
         self.notes = [] # jupyter notebook
         self.assets = []
 
-    def add_items(self, add_nb=False):
+    def add_items(self):
+        self.add_assets()
+        self.add_markdowns()
+        # self.add_notebooks()
+
+    def add_assets(self):
         asset_base = os.path.join(self.src_dir, PATH_ASSETS)
         assets = glob.glob('**', root_dir=asset_base, recursive=True)
         for url in assets:
@@ -255,13 +252,16 @@ class Site:
             if os.path.isfile(src):
                 dst = os.path.join(self.out_dir, url)
                 self.assets.append(create_item(src, dst, url))
+
+    def add_markdowns(self):
         md_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.md')
         for src in glob.glob(md_pattern, recursive=True):
             self.posts.append(MarkdownItem(os.path.realpath(src), self.out_dir))
-        if add_nb:
-            nb_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.ipynb')
-            for src in glob.glob(nb_pattern, recursive=True):
-                self.notes.append(NotebookItem(os.path.realpath(src), self.out_dir))
+
+    def add_notebooks(self):
+        nb_pattern = os.path.join(self.src_dir, PATH_POSTS, '**', '*.ipynb')
+        for src in glob.glob(nb_pattern, recursive=True):
+            self.notes.append(NotebookItem(os.path.realpath(src), self.out_dir))
 
     # 文件引用了静态文件，未被记录，将文件记录下来
     # TODO 引用计数？
