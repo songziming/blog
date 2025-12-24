@@ -2,6 +2,9 @@
 
 '''
 https://nbconvert.readthedocs.io/en/latest/nbconvert_library.html
+
+notebook file format doc:
+https://nbformat.readthedocs.io/en/latest/format_description.html
 '''
 
 import os
@@ -26,8 +29,8 @@ class YamlCell(Preprocessor):
         metadata, content = frontmatter.parse(nb.cells[0].source)
         nb.meta = metadata
         nb.cells[0].source = content
-        print(metadata)
-        print(type(nb), dir(nb))
+        # print(metadata)
+        print(type(nb.cells[0]), dir(nb.cells[0]))
         return nb, resources
 
 
@@ -36,26 +39,13 @@ class YamlCell(Preprocessor):
 # C:\Users\zmsong\AppData\Local\Programs\Python\Python313\share\jupyter\nbconvert\templates
 # 里面提供了多种模板，包括 lab、classic，使用里面的 index.html 渲染
 
-dl = DictLoader({
-    "footer": """
-{%- extends 'lab/index.html.j2' -%}
-
-{% block footer %}
-FOOOOOOOOTEEEEER
-{% endblock footer %}
-"""
-    })
-
-
-
 class MyNbExporter(HTMLExporter):
-    '''定制html渲染器，替换默认的jinja模板'''
-    export_from_notebook = "My format"
-    # def __init__(self, config):
-    #     super().__init__()
+    '''定制html渲染器，替换默认的jinja模板，从我们的目录下搜索jinja2模板'''
     @property
     def template_paths(self):
-        return super().template_paths + [os.path.realpath('templates/nb')]
+        return [os.path.realpath('templates/nb')]
+    def _template_file_default(self):
+        return 'notebook'
 
 
 if '__main__' == __name__:
@@ -65,7 +55,6 @@ if '__main__' == __name__:
 
     cfg = Config()
     cfg.MyNbExporter.preprocessors = [ YamlCell, ExtractOutputPreprocessor ]
-        # 'nbconvert.preprocessors.ExtractOutputPreprocessor'
 
     # 这样渲染的页面是默认样式，和 jupyter 里面看到的一样，资源文件是 base64 内嵌在页面里的
     # 可以使用 ExtractOutputPreprocessor 将静态资源提取出来，放在 resources 里面

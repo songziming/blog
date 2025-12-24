@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="{{ resources.language_code }}">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{nb_title}}</title>
+</head>
+<body>
+    <p>dummy notebook content</p>
+    {%- for cell in nb.cells -%}
+        {%- if cell.cell_type == 'markdown'-%}
+            <p>markdown block</p>
+        {%- elif cell.cell_type == 'code'-%}
+            <p>code block</p>
+            <pre>{{ cell.source }}</pre>
+            {%- if cell.outputs and (not cell.metadata.get("collapsed", False)) -%}
+                {%- for output in cell.outputs -%}
+                    <p>--> output type {{output.output_type}}</p>
+
+
+                    {%- if output.output_type == 'execute_result' -%}
+                        {%- block execute_result scoped -%}{%- endblock execute_result -%}
+                    {%- elif output.output_type == 'stream' -%}
+                        {%- if output.name == 'stdout' -%}
+                            {%- block stream_stdout scoped -%}{%- endblock stream_stdout -%}
+                        {%- elif output.name == 'stderr' -%}
+                            {%- block stream_stderr scoped -%}{%- endblock stream_stderr -%}
+                        {%- elif output.name == 'stdin' -%}
+                            {%- block stream_stdin scoped -%}{%- endblock stream_stdin -%}
+                        {%- endif -%}
+                    {%- elif output.output_type == 'display_data' -%}
+                        {%- block data_priority scoped -%}{%- endblock data_priority -%}
+                    {%- elif output.output_type == 'error' -%}
+                        {%- block error scoped -%}
+                        {%- for line in output.traceback -%}
+                            {%- block traceback_line scoped -%}{%- endblock traceback_line -%}
+                        {%- endfor -%}
+                        {%- endblock error -%}
+                    {%- else -%}
+                        <p>unknown output type {{output.output_type}}</p>
+                    {%- endif -%}
+
+
+                {%- endfor -%}
+            {%- endif -%}
+        {%- elif cell.cell_type == 'raw' -%}
+            <p>raw block</p>
+        {%- else -%}
+            <p>unknown cell type {{cell.cell_type}}.</p>
+        {%- endif -%}
+    {%- endfor -%}
+</body>
+</html>
