@@ -9,7 +9,8 @@
     <p>dummy notebook content</p>
     {%- for cell in nb.cells -%}
         {%- if cell.cell_type == 'markdown'-%}
-            <p>markdown block</p>
+            {%- set html_value=cell.source | markdown2html | strip_files_prefix -%}
+            {{ html_value }}
         {%- elif cell.cell_type == 'code'-%}
             <p>code block</p>
             <pre>{{ cell.source }}</pre>
@@ -18,24 +19,16 @@
                     <p>--> output type {{output.output_type}}</p>
 
 
-                    {%- if output.output_type == 'execute_result' -%}
-                        {%- block execute_result scoped -%}{%- endblock execute_result -%}
-                    {%- elif output.output_type == 'stream' -%}
-                        {%- if output.name == 'stdout' -%}
-                            {%- block stream_stdout scoped -%}{%- endblock stream_stdout -%}
-                        {%- elif output.name == 'stderr' -%}
-                            {%- block stream_stderr scoped -%}{%- endblock stream_stderr -%}
-                        {%- elif output.name == 'stdin' -%}
-                            {%- block stream_stdin scoped -%}{%- endblock stream_stdin -%}
-                        {%- endif -%}
-                    {%- elif output.output_type == 'display_data' -%}
+                    {%- if output.output_type in ['execute_result', 'display_data'] -%}
                         {%- block data_priority scoped -%}{%- endblock data_priority -%}
+                    {%- elif output.output_type == 'stream' -%}
+                        {%- block stream scoped -%}{%- endblock stream -%}
                     {%- elif output.output_type == 'error' -%}
-                        {%- block error scoped -%}
+                        <div class="highlight"><pre>
                         {%- for line in output.traceback -%}
                             {%- block traceback_line scoped -%}{%- endblock traceback_line -%}
                         {%- endfor -%}
-                        {%- endblock error -%}
+                        </pre></div>
                     {%- else -%}
                         <p>unknown output type {{output.output_type}}</p>
                     {%- endif -%}

@@ -1,9 +1,19 @@
 {% extends 'display_priority.html.j2' %}
 
+{% block stream -%}
+<div class="highlight"><pre>
+{{- output.text | ansi2html -}}
+</pre></div>
+{%- endblock stream %}
+
+{%- block traceback_line %}
+{{ line | ansi2html }}
+{%- endblock traceback_line %}
+
 {%- block data_jpg -%}
-<strong>data jpeg</strong>
+<img src="{{ output.metadata.filenames['image/jpeg'] | posix_path | escape_html }}">
 {%- endblock -%}
 
 {%- block data_png -%}
-<strong>data png</strong>
+<img src="{{ output.metadata.filenames['image/png'] | posix_path | escape_html }}">
 {%- endblock -%}
