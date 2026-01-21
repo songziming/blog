@@ -1,6 +1,6 @@
 ---
 title: 关于 Markdown 样式的完整案例
-# draft: true
+draft: true
 ---
 
 测试各种 markdown 标记的渲染效果，本页面可以检查样式表。
